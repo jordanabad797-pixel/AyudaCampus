@@ -5,24 +5,35 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.tecsup.ayudacampus.data.local.dao.CategoriaDao
+import com.tecsup.ayudacampus.data.local.dao.TicketDao
+import com.tecsup.ayudacampus.data.local.dao.UsuarioDao
 import com.tecsup.ayudacampus.data.local.entity.Categoria
+import com.tecsup.ayudacampus.data.local.entity.Comentario
+import com.tecsup.ayudacampus.data.local.entity.Ticket
+import com.tecsup.ayudacampus.data.local.entity.Usuario
 
 /**
- * [GUIADO] Base de datos de AyudaCampus (archivo "ayudacampus.db").
+ * [GUIADO · Paso 3] Base de datos de AyudaCampus (archivo "ayudacampus.db").
  *
- * Si cambias una entidad después de haber ejecutado la app, sube [version]
- * o desinstala la app del emulador (el esquema debe coincidir).
+ * Registra las 4 tablas y expone un DAO por grupo de operaciones.
+ * version = 2 porque el esquema cambió respecto del proyecto base (solo categorías).
+ * Si cambias una entidad después de ejecutar la app, sube [version] o desinstala la app.
  */
 @Database(
-    entities = [Categoria::class /* TODO (Paso 3): Usuario::class, Ticket::class, Comentario::class */],
-    version = 1,
+    entities = [
+        Categoria::class,
+        Usuario::class,
+        Ticket::class,
+        Comentario::class
+    ],
+    version = 2,
     exportSchema = false
 )
 abstract class AyudaDatabase : RoomDatabase() {
 
     abstract fun categoriaDao(): CategoriaDao
-    // TODO (Paso 3): abstract fun usuarioDao(): UsuarioDao
-    // TODO (Paso 3): abstract fun ticketDao(): TicketDao
+    abstract fun usuarioDao(): UsuarioDao
+    abstract fun ticketDao(): TicketDao
 
     companion object {
         private const val NOMBRE_BD = "ayudacampus.db"

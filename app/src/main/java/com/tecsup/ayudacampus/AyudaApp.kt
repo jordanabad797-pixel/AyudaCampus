@@ -1,6 +1,7 @@
 package com.tecsup.ayudacampus
 
 import android.app.Application
+import android.util.Log
 import com.tecsup.ayudacampus.data.local.AyudaDatabase
 import com.tecsup.ayudacampus.data.local.DatosIniciales
 import com.tecsup.ayudacampus.data.repository.AyudaRepository
@@ -31,7 +32,10 @@ class AyudaApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Siembra los datos de prueba solo la primera vez (fuera del hilo principal).
-        appScope.launch { DatosIniciales.sembrar(database) }
+        // Siembra los datos de prueba solo la primera vez, fuera del hilo principal (Dispatchers.IO).
+        appScope.launch {
+            runCatching { DatosIniciales.sembrar(database) }
+                .onFailure { Log.e("AyudaApp", "Error al sembrar datos iniciales", it) }
+        }
     }
 }
