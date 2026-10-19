@@ -28,10 +28,13 @@ import com.tecsup.ayudacampus.ui.cliente.LoginScreen
 import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
 import com.tecsup.ayudacampus.ui.cliente.NuevoTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.SplashScreen
+import com.tecsup.ayudacampus.ui.soporte.AtenderTicketScreen
 import com.tecsup.ayudacampus.ui.soporte.BandejaScreen
 import com.tecsup.ayudacampus.ui.soporte.CategoriasScreen
+import com.tecsup.ayudacampus.ui.soporte.FormularioCategoriaScreen
 import com.tecsup.ayudacampus.ui.soporte.PanelScreen
 import com.tecsup.ayudacampus.ui.theme.AyudaTheme
+import com.tecsup.ayudacampus.viewmodel.AtenderViewModel
 import com.tecsup.ayudacampus.viewmodel.AyudaViewModelFactory
 import com.tecsup.ayudacampus.viewmodel.BandejaViewModel
 import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
@@ -153,16 +156,53 @@ fun NavAyuda() {
                 val vm = ayudaViewModel { app -> BandejaViewModel(app.repository) }
                 BandejaScreen(
                     vm = vm,
-                    onAtender = { /* TODO (Paso 11): navController.navigate(Rutas.atender(it)) */ },
+                    onAtender = { navController.navigate(Rutas.atender(it)) },
                     onAtras = { navController.popBackStack() }
                 )
+            }
+
+            composable(
+                route = Rutas.ATENDER,
+                arguments = listOf(navArgument(Rutas.ARG_TICKET_ID) { type = NavType.IntType })
+            ) { entrada ->
+                val ticketId = entrada.arguments?.getInt(Rutas.ARG_TICKET_ID) ?: 0
+                val u = usuario
+                if (u == null) {
+                    PantallaCargando()
+                } else {
+                    val vm = ayudaViewModel { app -> AtenderViewModel(app.repository, ticketId, u) }
+                    AtenderTicketScreen(
+                        vm = vm,
+                        ticketId = ticketId,
+                        onAtras = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable(Rutas.CATEGORIAS) {
                 val vm = ayudaViewModel { app -> CategoriasViewModel(app.repository) }
                 CategoriasScreen(
                     vm = vm,
-                    onEditar = { /* TODO (Paso 11): navController.navigate(Rutas.formCategoria(it)) */ }
+                    onEditar = { navController.navigate(Rutas.formCategoria(it)) },
+                    onNueva = { navController.navigate(Rutas.formCategoria()) }
+                )
+            }
+
+            composable(
+                route = Rutas.FORM_CATEGORIA,
+                arguments = listOf(
+                    navArgument(Rutas.ARG_CATEGORIA_ID) {
+                        type = NavType.IntType
+                        defaultValue = -1
+                    }
+                )
+            ) { entrada ->
+                val categoriaId = entrada.arguments?.getInt(Rutas.ARG_CATEGORIA_ID)?.takeIf { it > 0 }
+                val vm = ayudaViewModel { app -> CategoriasViewModel(app.repository) }
+                FormularioCategoriaScreen(
+                    vm = vm,
+                    categoriaId = categoriaId,
+                    onAtras = { navController.popBackStack() }
                 )
             }
         }
