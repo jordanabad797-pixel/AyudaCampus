@@ -28,6 +28,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -35,6 +37,7 @@ import com.tecsup.ayudacampus.AyudaApp
 import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.model.Rol
+import com.tecsup.ayudacampus.ui.cliente.DetalleTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.LoginScreen
 import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
 import com.tecsup.ayudacampus.ui.cliente.NuevoTicketScreen
@@ -48,6 +51,7 @@ import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
 import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
 import com.tecsup.ayudacampus.viewmodel.NuevoTicketViewModel
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
+import com.tecsup.ayudacampus.viewmodel.TicketDetalleViewModel
 
 /**
  * [GUIADO] Grafo de navegación de AyudaCampus.
@@ -57,6 +61,7 @@ import com.tecsup.ayudacampus.viewmodel.SesionViewModel
  *  - El tema (cian / violeta y modo oscuro) depende de la sesión.
  * Paso 7: Mis tickets del estudiante.
  * Paso 8: Nuevo ticket.
+ * Paso 9: Detalle del ticket.
  * TODO (Paso 10): Panel reemplaza a la pantalla pendiente de soporte.
  * TODO (Paso 12): grafo de cada perfil con su NavigationBar (itemsNavCliente / itemsNavSoporte).
  */
@@ -112,7 +117,7 @@ fun NavAyuda() {
                     MisTicketsScreen(
                         vm = vm,
                         nombreUsuario = u.nombre,
-                        onAbrirTicket = { /* TODO (Paso 9): navController.navigate(Rutas.detalleTicket(it)) */ },
+                        onAbrirTicket = { navController.navigate(Rutas.detalleTicket(it)) },
                         onNuevoTicket = { navController.navigate(Rutas.NUEVO_TICKET) },
                         // Temporal: en el Paso 12 se cierra sesión desde Perfil.
                         onCerrarSesion = {
@@ -133,6 +138,24 @@ fun NavAyuda() {
                         vm = vm,
                         onAtras = { navController.popBackStack() },
                         onEnviado = { navController.popBackStack() }
+                    )
+                }
+            }
+
+            composable(
+                route = Rutas.DETALLE_TICKET,
+                arguments = listOf(navArgument(Rutas.ARG_TICKET_ID) { type = NavType.IntType })
+            ) { entrada ->
+                val ticketId = entrada.arguments?.getInt(Rutas.ARG_TICKET_ID) ?: 0
+                val u = usuario
+                if (u == null) {
+                    PantallaCargando()
+                } else {
+                    val vm = ayudaViewModel { app -> TicketDetalleViewModel(app.repository, ticketId, u) }
+                    DetalleTicketScreen(
+                        vm = vm,
+                        ticketId = ticketId,
+                        onAtras = { navController.popBackStack() }
                     )
                 }
             }
