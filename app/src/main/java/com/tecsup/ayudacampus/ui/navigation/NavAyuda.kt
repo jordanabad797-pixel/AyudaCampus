@@ -2,6 +2,7 @@ package com.tecsup.ayudacampus.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Construction
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,6 +36,7 @@ import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.model.Rol
 import com.tecsup.ayudacampus.ui.cliente.LoginScreen
+import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
 import com.tecsup.ayudacampus.ui.cliente.SplashScreen
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.VarianteBoton
@@ -41,6 +44,7 @@ import com.tecsup.ayudacampus.ui.soporte.CategoriasScreen
 import com.tecsup.ayudacampus.ui.theme.AyudaTheme
 import com.tecsup.ayudacampus.viewmodel.AyudaViewModelFactory
 import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
+import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
 
 /**
@@ -49,7 +53,7 @@ import com.tecsup.ayudacampus.viewmodel.SesionViewModel
  * Paso 6: Splash → Login → pantalla principal según el rol.
  *  - Si ya hay sesión guardada, el Splash salta el login.
  *  - El tema (cian / violeta y modo oscuro) depende de la sesión.
- * TODO (Paso 7):  Mis tickets reemplaza a la pantalla pendiente del estudiante.
+ * Paso 7: Mis tickets del estudiante.
  * TODO (Paso 10): Panel reemplaza a la pantalla pendiente de soporte.
  * TODO (Paso 12): grafo de cada perfil con su NavigationBar (itemsNavCliente / itemsNavSoporte).
  */
@@ -97,16 +101,23 @@ fun NavAyuda() {
 
             // ---------- Estudiante ----------
             composable(Rutas.MIS_TICKETS) {
-                // TODO (Paso 7): MisTicketsScreen
-                PantallaPendiente(
-                    titulo = "Mis tickets",
-                    usuario = usuario,
-                    detalle = "Esta pantalla se construye en el Paso 7.",
-                    onCerrarSesion = {
-                        sesionVm.cerrarSesion()
-                        navController.irALogin()
-                    }
-                )
+                val u = usuario
+                if (u == null) {
+                    PantallaCargando()
+                } else {
+                    val vm = ayudaViewModel { app -> MisTicketsViewModel(app.repository, u.id) }
+                    MisTicketsScreen(
+                        vm = vm,
+                        nombreUsuario = u.nombre,
+                        onAbrirTicket = { /* TODO (Paso 9): navController.navigate(Rutas.detalleTicket(it)) */ },
+                        onNuevoTicket = { /* TODO (Paso 8): navController.navigate(Rutas.NUEVO_TICKET) */ },
+                        // Temporal: en el Paso 12 se cierra sesión desde Perfil.
+                        onCerrarSesion = {
+                            sesionVm.cerrarSesion()
+                            navController.irALogin()
+                        }
+                    )
+                }
             }
 
             // ---------- Soporte TI ----------
@@ -152,7 +163,20 @@ private fun NavHostController.irALogin() {
     }
 }
 
-/** Pantalla temporal mientras se construyen las pantallas principales (Pasos 7 y 10). */
+/** Mientras se recupera el usuario de la sesión. */
+@Composable
+private fun PantallaCargando() {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+/** Pantalla temporal mientras se construye el Panel de soporte (Paso 10). */
 @Composable
 private fun PantallaPendiente(
     titulo: String,
