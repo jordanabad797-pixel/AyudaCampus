@@ -1,40 +1,26 @@
 package com.tecsup.ayudacampus.ui.navigation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Construction
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.tecsup.ayudacampus.AyudaApp
-import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.model.Rol
 import com.tecsup.ayudacampus.ui.cliente.DetalleTicketScreen
@@ -42,34 +28,27 @@ import com.tecsup.ayudacampus.ui.cliente.LoginScreen
 import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
 import com.tecsup.ayudacampus.ui.cliente.NuevoTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.SplashScreen
-import com.tecsup.ayudacampus.ui.components.AyudaButton
-import com.tecsup.ayudacampus.ui.components.VarianteBoton
+import com.tecsup.ayudacampus.ui.soporte.BandejaScreen
 import com.tecsup.ayudacampus.ui.soporte.CategoriasScreen
+import com.tecsup.ayudacampus.ui.soporte.PanelScreen
 import com.tecsup.ayudacampus.ui.theme.AyudaTheme
 import com.tecsup.ayudacampus.viewmodel.AyudaViewModelFactory
+import com.tecsup.ayudacampus.viewmodel.BandejaViewModel
 import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
 import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
 import com.tecsup.ayudacampus.viewmodel.NuevoTicketViewModel
+import com.tecsup.ayudacampus.viewmodel.PanelViewModel
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
 import com.tecsup.ayudacampus.viewmodel.TicketDetalleViewModel
 
 /**
  * [GUIADO] Grafo de navegación de AyudaCampus.
- *
- * Paso 6: Splash → Login → pantalla principal según el rol.
- *  - Si ya hay sesión guardada, el Splash salta el login.
- *  - El tema (cian / violeta y modo oscuro) depende de la sesión.
- * Paso 7: Mis tickets del estudiante.
- * Paso 8: Nuevo ticket.
- * Paso 9: Detalle del ticket.
- * TODO (Paso 10): Panel reemplaza a la pantalla pendiente de soporte.
  * TODO (Paso 12): grafo de cada perfil con su NavigationBar (itemsNavCliente / itemsNavSoporte).
  */
 @Composable
 fun NavAyuda() {
     val navController = rememberNavController()
 
-    // ViewModel de sesión a nivel de Activity: lo comparten todas las pantallas.
     val sesionVm = ayudaViewModel { app -> SesionViewModel(app.repository, app.preferencias) }
     val usuario by sesionVm.usuarioActual.collectAsStateWithLifecycle()
     val sesionVerificada by sesionVm.sesionVerificada.collectAsStateWithLifecycle()
@@ -78,6 +57,11 @@ fun NavAyuda() {
 
     // Con sesión: color del usuario. Sin sesión: color de la pestaña elegida en el Login.
     val rolTema = usuario?.rolEnum ?: rolLogin
+
+    val cerrarSesion: () -> Unit = {
+        sesionVm.cerrarSesion()
+        navController.irALogin()
+    }
 
     AyudaTheme(rol = rolTema, oscuro = modoOscuro) {
         NavHost(
@@ -88,7 +72,6 @@ fun NavAyuda() {
                 .background(MaterialTheme.colorScheme.background)
         ) {
             composable(Rutas.SPLASH) {
-                // Si ya hay perfil guardado, salta el login.
                 LaunchedEffect(sesionVerificada, usuario) {
                     val u = usuario
                     if (sesionVerificada && u != null) navController.irAInicio(u.rolEnum)
@@ -100,7 +83,6 @@ fun NavAyuda() {
             }
 
             composable(Rutas.LOGIN) {
-                // El ViewModel avisa (una sola vez) cuando el login fue exitoso → navegamos.
                 LaunchedEffect(Unit) {
                     sesionVm.ingresoExitoso.collect { rol -> navController.irAInicio(rol) }
                 }
@@ -119,11 +101,7 @@ fun NavAyuda() {
                         nombreUsuario = u.nombre,
                         onAbrirTicket = { navController.navigate(Rutas.detalleTicket(it)) },
                         onNuevoTicket = { navController.navigate(Rutas.NUEVO_TICKET) },
-                        // Temporal: en el Paso 12 se cierra sesión desde Perfil.
-                        onCerrarSesion = {
-                            sesionVm.cerrarSesion()
-                            navController.irALogin()
-                        }
+                        onCerrarSesion = cerrarSesion
                     )
                 }
             }
@@ -162,16 +140,21 @@ fun NavAyuda() {
 
             // ---------- Soporte TI ----------
             composable(Rutas.PANEL) {
-                // TODO (Paso 10): PanelScreen
-                PantallaPendiente(
-                    titulo = "Panel de soporte",
-                    usuario = usuario,
-                    detalle = "Esta pantalla se construye en el Paso 10.",
-                    onCerrarSesion = {
-                        sesionVm.cerrarSesion()
-                        navController.irALogin()
-                    },
-                    onVerCategorias = { navController.navigate(Rutas.CATEGORIAS) }
+                val vm = ayudaViewModel { app -> PanelViewModel(app.repository) }
+                PanelScreen(
+                    vm = vm,
+                    onVerBandeja = { navController.navigate(Rutas.BANDEJA) },
+                    onVerCategorias = { navController.navigate(Rutas.CATEGORIAS) },
+                    onCerrarSesion = cerrarSesion
+                )
+            }
+
+            composable(Rutas.BANDEJA) {
+                val vm = ayudaViewModel { app -> BandejaViewModel(app.repository) }
+                BandejaScreen(
+                    vm = vm,
+                    onAtender = { /* TODO (Paso 11): navController.navigate(Rutas.atender(it)) */ },
+                    onAtras = { navController.popBackStack() }
                 )
             }
 
@@ -195,7 +178,6 @@ private fun NavHostController.irAInicio(rol: Rol) {
     }
 }
 
-/** Va al Login y limpia la pila. */
 private fun NavHostController.irALogin() {
     navigate(Rutas.LOGIN) {
         popUpTo(graph.id) { inclusive = true }
@@ -203,7 +185,6 @@ private fun NavHostController.irALogin() {
     }
 }
 
-/** Mientras se recupera el usuario de la sesión. */
 @Composable
 private fun PantallaCargando() {
     Box(
@@ -216,60 +197,9 @@ private fun PantallaCargando() {
     }
 }
 
-/** Pantalla temporal mientras se construye el Panel de soporte (Paso 10). */
-@Composable
-private fun PantallaPendiente(
-    titulo: String,
-    usuario: Usuario?,
-    detalle: String,
-    onCerrarSesion: () -> Unit,
-    onVerCategorias: (() -> Unit)? = null
-) {
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                Icons.Outlined.Construction,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(56.dp)
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(titulo, style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Hola, ${usuario?.nombre ?: ""} (${usuario?.rolEnum?.etiqueta ?: ""})",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                detalle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(32.dp))
-            if (onVerCategorias != null) {
-                AyudaButton(texto = "Ver categorías", onClick = onVerCategorias)
-                Spacer(Modifier.height(12.dp))
-            }
-            AyudaButton(texto = "Cerrar sesión", onClick = onCerrarSesion, variante = VarianteBoton.PELIGRO)
-        }
-    }
-}
-
 /**
  * Crea (o recupera) un ViewModel ligado a la pantalla actual, inyectándole
  * lo que necesite desde [AyudaApp] (el Repository y las preferencias).
- *
- *     val vm = ayudaViewModel { app -> CategoriasViewModel(app.repository) }
  */
 @Composable
 internal inline fun <reified VM : ViewModel> ayudaViewModel(
