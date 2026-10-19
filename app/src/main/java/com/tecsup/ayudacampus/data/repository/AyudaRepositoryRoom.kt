@@ -9,6 +9,7 @@ import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.model.ConteoCategoria
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.Prioridad
+import com.tecsup.ayudacampus.model.Rol
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -29,6 +30,8 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
         usuarioDao.login(correo.trim(), clave)
 
     override suspend fun obtenerUsuario(id: Int): Usuario? = usuarioDao.obtener(id)
+
+    override suspend fun obtenerUsuarioPorRol(rol: Rol): Usuario? = usuarioDao.primeroPorRol(rol.name)
 
     // ---------- Categorías (ejemplo resuelto) ----------
 

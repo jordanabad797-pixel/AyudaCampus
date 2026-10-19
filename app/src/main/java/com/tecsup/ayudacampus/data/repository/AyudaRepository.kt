@@ -6,6 +6,7 @@ import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.model.ConteoCategoria
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.Prioridad
+import com.tecsup.ayudacampus.model.Rol
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -22,6 +23,7 @@ interface AyudaRepository {
     // Usuarios
     suspend fun login(correo: String, clave: String): Usuario?
     suspend fun obtenerUsuario(id: Int): Usuario?
+    suspend fun obtenerUsuarioPorRol(rol: Rol): Usuario?
 
     // Categorías (ejemplo resuelto)
     fun observarCategorias(): Flow<List<Categoria>>

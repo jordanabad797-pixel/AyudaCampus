@@ -45,6 +45,7 @@ import com.tecsup.ayudacampus.model.Prioridad
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.AyudaTextField
+import com.tecsup.ayudacampus.ui.components.AvisoMesaCerrada
 import com.tecsup.ayudacampus.ui.components.IconosCategoria
 import com.tecsup.ayudacampus.ui.theme.color
 import com.tecsup.ayudacampus.viewmodel.NuevoTicketViewModel
@@ -57,6 +58,7 @@ fun NuevoTicketScreen(
 ) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     val categorias by vm.categorias.collectAsStateWithLifecycle()
+    val mesaAbierta by vm.mesaAbierta.collectAsStateWithLifecycle()
     val foco = LocalFocusManager.current
 
     LaunchedEffect(Unit) {
@@ -75,6 +77,9 @@ fun NuevoTicketScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+            if (!mesaAbierta) {
+                AvisoMesaCerrada(Modifier.padding(bottom = 8.dp))
+            }
             Seccion("Categoría")
             SelectorCategoria(
                 categorias = categorias,
@@ -131,7 +136,8 @@ fun NuevoTicketScreen(
                     foco.clearFocus()
                     vm.enviar()
                 },
-                cargando = ui.enviando
+                cargando = ui.enviando,
+                enabled = mesaAbierta
             )
             Spacer(Modifier.height(24.dp))
         }

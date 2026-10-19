@@ -10,24 +10,21 @@ import com.tecsup.ayudacampus.model.Rol
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * [TÚ LO HACES · Paso 6] Sesión de la app (compartido por toda la navegación).
+ * Sesión y preferencias de la app (compartido por toda la navegación).
  *
- * La sesión vive en DataStore (perfilActivo + usuarioId). [usuarioActual] se DERIVA de ahí:
- *  - login      → guarda la sesión  → usuarioActual pasa a tener valor.
- *  - cerrar     → borra la sesión   → usuarioActual vuelve a null.
- *  - (Paso 12) cambiar de perfil → guarda el otro perfil → usuarioActual cambia solo.
- * Así hay una sola fuente de verdad y la sesión sobrevive al cerrar la app.
+ * La sesión vive en DataStore (perfilActivo + usuarioId) y [usuarioActual] se deriva de ahí:
+ * login, cerrar sesión y cambiar de perfil solo escriben en DataStore y el usuario se actualiza solo.
  */
 class SesionViewModel(
     private val repo: AyudaRepository,
@@ -35,10 +32,8 @@ class SesionViewModel(
 ) : ViewModel() {
 
     private val _sesionVerificada = MutableStateFlow(false)
-    /** true cuando ya se leyó DataStore (para que el Splash sepa si saltar el login). */
     val sesionVerificada: StateFlow<Boolean> = _sesionVerificada.asStateFlow()
 
-    /** Usuario con sesión activa, o null. Se valida que el rol guardado coincida con el de la base. */
     val usuarioActual: StateFlow<Usuario?> =
         combine(prefs.perfilActivo, prefs.usuarioId) { perfil, id -> perfil to id }
             .map { (perfil, id) ->
@@ -48,12 +43,16 @@ class SesionViewModel(
             .onEach { _sesionVerificada.value = true }
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    /** Modo oscuro guardado (lo usa AyudaTheme en toda la app). */
     val modoOscuro: StateFlow<Boolean> =
         prefs.modoOscuro.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    val notificaciones: StateFlow<Boolean> =
+        prefs.notificaciones.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val recibirTickets: StateFlow<Boolean> =
+        prefs.recibirTickets.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
     private val _rolSeleccionado = MutableStateFlow(Rol.CLIENTE)
-    /** Pestaña elegida en el Login (también define el color del tema antes de ingresar). */
     val rolSeleccionado: StateFlow<Rol> = _rolSeleccionado.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
@@ -62,9 +61,12 @@ class SesionViewModel(
     private val _cargando = MutableStateFlow(false)
     val cargando: StateFlow<Boolean> = _cargando.asStateFlow()
 
-    /** Evento de una sola vez: "el login fue exitoso, navega a la pantalla de este rol". */
-    private val _ingresoExitoso = Channel<Rol>(Channel.BUFFERED)
-    val ingresoExitoso: Flow<Rol> = _ingresoExitoso.receiveAsFlow()
+    /** Evento de una sola vez: navegar a la pantalla principal de este rol (login o cambio de perfil). */
+    private val _irAInicio = Channel<Rol>(Channel.BUFFERED)
+    val irAInicio: Flow<Rol> = _irAInicio.receiveAsFlow()
+
+    private val _aviso = Channel<String>(Channel.BUFFERED)
+    val aviso: Flow<String> = _aviso.receiveAsFlow()
 
     fun seleccionarRol(rol: Rol) {
         _rolSeleccionado.value = rol
@@ -75,13 +77,8 @@ class SesionViewModel(
         _error.value = null
     }
 
-    /**
-     * Valida y, si todo está bien, guarda la sesión en DataStore.
-     * Reglas: campos obligatorios, formato de correo, credenciales correctas
-     * y rol de la cuenta igual a la pestaña elegida.
-     */
     fun login(correo: String, clave: String, rolSeleccionado: Rol = _rolSeleccionado.value) {
-        if (_cargando.value) return // evita doble clic
+        if (_cargando.value) return
         val correoLimpio = correo.trim()
 
         val errorValidacion = when {
@@ -111,7 +108,7 @@ class SesionViewModel(
 
                     else -> {
                         prefs.guardarSesion(usuario.rolEnum, usuario.id)
-                        _ingresoExitoso.send(usuario.rolEnum)
+                        _irAInicio.send(usuario.rolEnum)
                     }
                 }
             } catch (e: Exception) {
@@ -122,7 +119,34 @@ class SesionViewModel(
         }
     }
 
-    /** Borra el perfil guardado; la navegación vuelve al Login. */
+    /** Modo práctica: guarda el otro perfil en DataStore y navega a su pantalla principal. */
+    fun cambiarPerfil() {
+        val actual = usuarioActual.value ?: return
+        val destino = actual.rolEnum.otro()
+        viewModelScope.launch {
+            val otroUsuario = repo.obtenerUsuarioPorRol(destino)
+            if (otroUsuario == null) {
+                _aviso.send("No hay una cuenta de ${destino.etiqueta} en este dispositivo")
+                return@launch
+            }
+            prefs.guardarSesion(destino, otroUsuario.id)
+            _rolSeleccionado.value = destino
+            _irAInicio.send(destino)
+        }
+    }
+
+    fun cambiarModoOscuro(activo: Boolean) {
+        viewModelScope.launch { prefs.guardarModoOscuro(activo) }
+    }
+
+    fun cambiarNotificaciones(activo: Boolean) {
+        viewModelScope.launch { prefs.guardarNotificaciones(activo) }
+    }
+
+    fun cambiarRecibirTickets(activo: Boolean) {
+        viewModelScope.launch { prefs.guardarRecibirTickets(activo) }
+    }
+
     fun cerrarSesion() {
         viewModelScope.launch { prefs.cerrarSesion() }
     }

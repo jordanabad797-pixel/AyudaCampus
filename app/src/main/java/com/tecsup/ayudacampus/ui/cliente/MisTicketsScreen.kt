@@ -40,6 +40,7 @@ import com.tecsup.ayudacampus.data.local.entity.estadoEnum
 import com.tecsup.ayudacampus.data.local.entity.prioridadEnum
 import com.tecsup.ayudacampus.model.FiltroEstado
 import com.tecsup.ayudacampus.ui.components.AppTopBar
+import com.tecsup.ayudacampus.ui.components.AvisoMesaCerrada
 import com.tecsup.ayudacampus.ui.components.EstadoVacio
 import com.tecsup.ayudacampus.ui.components.FiltrosEstado
 import com.tecsup.ayudacampus.ui.components.TicketCard
@@ -59,6 +60,7 @@ fun MisTicketsScreen(
     nombreUsuario: String,
     onAbrirTicket: (Int) -> Unit,
     onNuevoTicket: () -> Unit,
+    mesaAbierta: Boolean = true,
     onCerrarSesion: (() -> Unit)? = null
 ) {
     val tickets by vm.tickets.collectAsStateWithLifecycle()
@@ -85,7 +87,7 @@ fun MisTicketsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            if (mesaAbierta) FloatingActionButton(
                 onClick = onNuevoTicket,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
@@ -100,6 +102,9 @@ fun MisTicketsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            if (!mesaAbierta) {
+                AvisoMesaCerrada(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+            }
             Buscador(
                 texto = busqueda,
                 onTexto = vm::buscar,

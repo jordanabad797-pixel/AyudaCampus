@@ -31,8 +31,13 @@ data class NuevoTicketUiState(
 
 class NuevoTicketViewModel(
     private val repo: AyudaRepository,
-    private val clienteId: Int
+    private val clienteId: Int,
+    recibirTickets: Flow<Boolean>
 ) : ViewModel() {
+
+    /** Ajuste "Recibir tickets" de Soporte: si está apagado, no se pueden crear tickets. */
+    val mesaAbierta: StateFlow<Boolean> = recibirTickets
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val categorias: StateFlow<List<Categoria>> = repo.observarCategoriasActivas()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -56,6 +61,10 @@ class NuevoTicketViewModel(
     fun enviar() {
         val estado = _ui.value
         if (estado.enviando) return
+        if (!mesaAbierta.value) {
+            _ui.update { it.copy(errorGeneral = "La mesa de ayuda está cerrada. Inténtalo más tarde.") }
+            return
+        }
 
         val categoriaValida = estado.categoriaId != null && categorias.value.any { it.id == estado.categoriaId }
         val errorCategoria = if (categoriaValida) null else "Elige una categoría"
