@@ -37,6 +37,7 @@ import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.model.Rol
 import com.tecsup.ayudacampus.ui.cliente.LoginScreen
 import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
+import com.tecsup.ayudacampus.ui.cliente.NuevoTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.SplashScreen
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.VarianteBoton
@@ -45,6 +46,7 @@ import com.tecsup.ayudacampus.ui.theme.AyudaTheme
 import com.tecsup.ayudacampus.viewmodel.AyudaViewModelFactory
 import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
 import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
+import com.tecsup.ayudacampus.viewmodel.NuevoTicketViewModel
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
 
 /**
@@ -54,6 +56,7 @@ import com.tecsup.ayudacampus.viewmodel.SesionViewModel
  *  - Si ya hay sesión guardada, el Splash salta el login.
  *  - El tema (cian / violeta y modo oscuro) depende de la sesión.
  * Paso 7: Mis tickets del estudiante.
+ * Paso 8: Nuevo ticket.
  * TODO (Paso 10): Panel reemplaza a la pantalla pendiente de soporte.
  * TODO (Paso 12): grafo de cada perfil con su NavigationBar (itemsNavCliente / itemsNavSoporte).
  */
@@ -110,12 +113,26 @@ fun NavAyuda() {
                         vm = vm,
                         nombreUsuario = u.nombre,
                         onAbrirTicket = { /* TODO (Paso 9): navController.navigate(Rutas.detalleTicket(it)) */ },
-                        onNuevoTicket = { /* TODO (Paso 8): navController.navigate(Rutas.NUEVO_TICKET) */ },
+                        onNuevoTicket = { navController.navigate(Rutas.NUEVO_TICKET) },
                         // Temporal: en el Paso 12 se cierra sesión desde Perfil.
                         onCerrarSesion = {
                             sesionVm.cerrarSesion()
                             navController.irALogin()
                         }
+                    )
+                }
+            }
+
+            composable(Rutas.NUEVO_TICKET) {
+                val u = usuario
+                if (u == null) {
+                    PantallaCargando()
+                } else {
+                    val vm = ayudaViewModel { app -> NuevoTicketViewModel(app.repository, u.id) }
+                    NuevoTicketScreen(
+                        vm = vm,
+                        onAtras = { navController.popBackStack() },
+                        onEnviado = { navController.popBackStack() }
                     )
                 }
             }
