@@ -6,34 +6,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ConfirmationNumber
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.data.local.entity.estadoEnum
@@ -41,6 +31,7 @@ import com.tecsup.ayudacampus.data.local.entity.prioridadEnum
 import com.tecsup.ayudacampus.model.FiltroEstado
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AvisoMesaCerrada
+import com.tecsup.ayudacampus.ui.components.CampoBusqueda
 import com.tecsup.ayudacampus.ui.components.EstadoVacio
 import com.tecsup.ayudacampus.ui.components.FiltrosEstado
 import com.tecsup.ayudacampus.ui.components.TicketCard
@@ -106,9 +97,10 @@ fun MisTicketsScreen(
             if (!mesaAbierta) {
                 AvisoMesaCerrada(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
             }
-            Buscador(
+            CampoBusqueda(
                 texto = busqueda,
                 onTexto = vm::buscar,
+                placeholder = "Buscar por título o número…",
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
             Spacer(Modifier.height(8.dp))
@@ -153,33 +145,4 @@ fun MisTicketsScreen(
             }
         }
     }
-}
-
-/** Campo de búsqueda redondeado con botón para limpiar. */
-@Composable
-private fun Buscador(texto: String, onTexto: (String) -> Unit, modifier: Modifier = Modifier) {
-    val foco = LocalFocusManager.current
-    OutlinedTextField(
-        value = texto,
-        onValueChange = onTexto,
-        modifier = modifier.fillMaxWidth(),
-        placeholder = { Text("Buscar por título o número…") },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-        trailingIcon = if (texto.isNotEmpty()) {
-            {
-                IconButton(onClick = { onTexto("") }) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Limpiar búsqueda")
-                }
-            }
-        } else null,
-        singleLine = true,
-        shape = MaterialTheme.shapes.extraLarge,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { foco.clearFocus() }),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-        )
-    )
 }
