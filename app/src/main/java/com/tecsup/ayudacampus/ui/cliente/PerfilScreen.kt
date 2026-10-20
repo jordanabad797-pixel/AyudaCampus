@@ -26,6 +26,7 @@ import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.FilaPreferencia
 import com.tecsup.ayudacampus.ui.components.GrupoPreferencias
 import com.tecsup.ayudacampus.ui.components.NotaDataStore
+import com.tecsup.ayudacampus.ui.components.NumeroAnimado
 import com.tecsup.ayudacampus.ui.components.TarjetaCambiarPerfil
 import com.tecsup.ayudacampus.ui.components.TarjetaUsuario
 import com.tecsup.ayudacampus.ui.components.VarianteBoton
@@ -99,7 +100,7 @@ fun PerfilScreen(
 private fun Contador(valor: Int, etiqueta: String, color: Color, modifier: Modifier = Modifier) {
     Surface(modifier = modifier, color = color.copy(alpha = 0.14f), shape = MaterialTheme.shapes.large) {
         Column(Modifier.padding(vertical = 14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(valor.toString(), style = MaterialTheme.typography.headlineSmall, color = color)
+            NumeroAnimado(valor = valor, style = MaterialTheme.typography.headlineSmall, color = color)
             Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = color)
         }
     }

@@ -55,6 +55,7 @@ import com.tecsup.ayudacampus.ui.components.CampoBusqueda
 import com.tecsup.ayudacampus.ui.components.EstadoVacio
 import com.tecsup.ayudacampus.ui.components.FiltrosEstado
 import com.tecsup.ayudacampus.ui.components.IconosCategoria
+import com.tecsup.ayudacampus.ui.components.Ilustracion
 import com.tecsup.ayudacampus.ui.components.TicketCard
 import com.tecsup.ayudacampus.ui.components.VarianteBoton
 import com.tecsup.ayudacampus.ui.theme.color
@@ -158,21 +159,22 @@ fun BandejaScreen(
                     CircularProgressIndicator()
                 }
 
-                tickets.isEmpty() -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    EstadoVacio(
-                        icono = Icons.Outlined.Inbox,
-                        titulo = "No hay tickets que coincidan",
-                        detalle = if (filtros.activos > 0) "Prueba con otros filtros." else "Aún no hay tickets."
-                    )
-                    if (filtros.activos > 0) {
-                        AyudaButton(
-                            texto = "Limpiar filtros",
-                            onClick = vm::limpiarFiltros,
-                            variante = VarianteBoton.CONTORNO,
-                            anchoCompleto = false
-                        )
-                    }
-                }
+                tickets.isEmpty() -> EstadoVacio(
+                    icono = Icons.Outlined.Inbox,
+                    titulo = if (filtros.activos > 0) "No hay tickets que coincidan" else "La bandeja está vacía",
+                    detalle = if (filtros.activos > 0) "Prueba con otros filtros." else "Cuando un estudiante reporte una incidencia, aparecerá aquí.",
+                    ilustracion = if (filtros.activos > 0) Ilustracion.BUSQUEDA else Ilustracion.BANDEJA,
+                    accion = if (filtros.activos > 0) {
+                        {
+                            AyudaButton(
+                                texto = "Limpiar filtros",
+                                onClick = vm::limpiarFiltros,
+                                variante = VarianteBoton.CONTORNO,
+                                anchoCompleto = false
+                            )
+                        }
+                    } else null
+                )
 
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),

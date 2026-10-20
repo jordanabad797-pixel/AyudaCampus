@@ -34,6 +34,7 @@ import com.tecsup.ayudacampus.ui.components.AvisoMesaCerrada
 import com.tecsup.ayudacampus.ui.components.CampoBusqueda
 import com.tecsup.ayudacampus.ui.components.EstadoVacio
 import com.tecsup.ayudacampus.ui.components.FiltrosEstado
+import com.tecsup.ayudacampus.ui.components.Ilustracion
 import com.tecsup.ayudacampus.ui.components.TicketCard
 import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
 
@@ -115,6 +116,7 @@ fun MisTicketsScreen(
                 tickets.isEmpty() -> EstadoVacio(
                     icono = Icons.Outlined.ConfirmationNumber,
                     titulo = "No tienes tickets aquí",
+                    ilustracion = if (busqueda.isNotBlank()) Ilustracion.BUSQUEDA else Ilustracion.TICKETS,
                     detalle = when {
                         busqueda.isNotBlank() -> "Ningún ticket coincide con \"${busqueda.trim()}\"."
                         filtro != FiltroEstado.TODOS -> "Prueba con otro filtro o crea un ticket con el botón +."

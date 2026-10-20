@@ -59,6 +59,7 @@ import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.BarraMensaje
 import com.tecsup.ayudacampus.ui.components.BurbujaComentario
+import com.tecsup.ayudacampus.ui.components.ConversacionVacia
 import com.tecsup.ayudacampus.ui.components.Estrellas
 import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
@@ -162,13 +163,7 @@ fun AtenderTicketScreen(
 
             item { Seccion("Conversación") }
             if (t.conversacion.isEmpty()) {
-                item {
-                    Text(
-                        "Aún no hay mensajes. Escribe una respuesta para el cliente.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                item { ConversacionVacia("Aún no hay mensajes. Escribe una respuesta para el cliente.") }
             }
             items(t.conversacion, key = { it.id }) { c ->
                 BurbujaComentario(

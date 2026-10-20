@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Card
@@ -53,11 +52,13 @@ import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.AyudaTextField
 import com.tecsup.ayudacampus.ui.components.BarraMensaje
 import com.tecsup.ayudacampus.ui.components.BurbujaComentario
+import com.tecsup.ayudacampus.ui.components.ConversacionVacia
 import com.tecsup.ayudacampus.ui.components.EstadoChip
 import com.tecsup.ayudacampus.ui.components.EstadoVacio
 import com.tecsup.ayudacampus.ui.components.Estrellas
 import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
+import com.tecsup.ayudacampus.ui.components.Ilustracion
 import com.tecsup.ayudacampus.ui.components.PrioridadChip
 import com.tecsup.ayudacampus.ui.components.SlaChip
 import com.tecsup.ayudacampus.ui.components.StepperTicket
@@ -111,6 +112,7 @@ fun DetalleTicketScreen(
             noEncontrado -> EstadoVacio(
                 icono = Icons.Outlined.SearchOff,
                 titulo = "Ticket no disponible",
+                ilustracion = Ilustracion.BUSQUEDA,
                 detalle = "No existe o no pertenece a tu cuenta.",
                 modifier = Modifier.padding(padding)
             )
@@ -186,20 +188,7 @@ private fun ContenidoDetalle(
         }
         if (conversacion.isEmpty()) {
             item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Outlined.Forum,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "Aún no hay mensajes. Soporte TI te responderá aquí.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                ConversacionVacia("Aún no hay mensajes. Soporte TI te responderá aquí.")
             }
         }
         items(conversacion, key = { it.id }) { c ->

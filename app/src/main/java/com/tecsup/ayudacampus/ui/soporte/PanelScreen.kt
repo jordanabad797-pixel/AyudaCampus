@@ -17,8 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.LocalOffer
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.Formatos
+import com.tecsup.ayudacampus.ui.components.NumeroAnimado
 import com.tecsup.ayudacampus.ui.components.graficos.GraficoBarras
 import com.tecsup.ayudacampus.ui.components.graficos.GraficoDona
 import com.tecsup.ayudacampus.ui.theme.Peligro
@@ -139,11 +140,7 @@ private fun Contador(
             Modifier.padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                valor.toString(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = color
-            )
+            NumeroAnimado(valor = valor, style = MaterialTheme.typography.headlineMedium, color = color)
             Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = color)
         }
     }

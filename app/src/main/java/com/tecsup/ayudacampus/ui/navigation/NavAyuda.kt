@@ -1,5 +1,9 @@
 package com.tecsup.ayudacampus.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -120,7 +124,19 @@ fun NavAyuda() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .consumeWindowInsets(padding)
+                    .consumeWindowInsets(padding),
+                enterTransition = {
+                    fadeIn(tween(DURACION_MS)) + slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Start, tween(DURACION_MS)
+                    ) { it / 8 }
+                },
+                exitTransition = { fadeOut(tween(DURACION_MS / 2)) },
+                popEnterTransition = { fadeIn(tween(DURACION_MS)) },
+                popExitTransition = {
+                    fadeOut(tween(DURACION_MS / 2)) + slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.End, tween(DURACION_MS)
+                    ) { it / 8 }
+                }
             ) {
                 composable(Rutas.SPLASH) {
                     LaunchedEffect(sesionVerificada, usuario) {
@@ -288,6 +304,9 @@ private fun BarraNavegacion(items: List<ItemNav>, rutaActual: String?, onElegir:
 private fun ConUsuario(usuario: Usuario?, rol: Rol, contenido: @Composable (Usuario) -> Unit) {
     if (usuario != null && usuario.rolEnum == rol) contenido(usuario) else PantallaCargando()
 }
+
+/** Duración de las transiciones entre pantallas (suaves: solo 1/8 del ancho + fundido). */
+private const val DURACION_MS = 280
 
 /** Va al grafo del rol y limpia toda la pila (no se puede volver con "atrás"). */
 private fun NavHostController.irAInicio(rol: Rol) {

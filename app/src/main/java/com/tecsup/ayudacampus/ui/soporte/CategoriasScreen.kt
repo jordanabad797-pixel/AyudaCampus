@@ -2,14 +2,12 @@ package com.tecsup.ayudacampus.ui.soporte
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,12 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.data.local.entity.Categoria
 import com.tecsup.ayudacampus.ui.components.AppTopBar
+import com.tecsup.ayudacampus.ui.components.EstadoVacio
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
+import com.tecsup.ayudacampus.ui.components.Ilustracion
 import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
 
 /**
@@ -79,7 +78,13 @@ fun CategoriasScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (categorias.isEmpty()) {
-            EstadoVacioCategorias(Modifier.padding(padding))
+            EstadoVacio(
+                icono = Icons.Outlined.LocalOffer,
+                titulo = "Aún no hay categorías",
+                detalle = "Crea la primera con el botón +",
+                ilustracion = Ilustracion.CATEGORIAS,
+                modifier = Modifier.padding(padding)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -146,28 +151,6 @@ private fun CategoriaItem(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun EstadoVacioCategorias(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
-            Icon(
-                Icons.Outlined.LocalOffer,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(Modifier.height(12.dp))
-            Text("Aún no hay categorías", style = MaterialTheme.typography.titleMedium)
-            Text(
-                "Crea la primera con el botón +",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
