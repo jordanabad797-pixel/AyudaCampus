@@ -36,7 +36,9 @@ data class Comentario(
     val autorNombre: String,
     val autorRol: String,
     val texto: String,
-    val fecha: Long = System.currentTimeMillis()
+    val fecha: Long = System.currentTimeMillis(),
+    /** Nota interna de Soporte: el estudiante nunca la ve. */
+    val interno: Boolean = false
 )
 
 /** Rol del autor como enum (para dibujar la burbuja del lado correcto). */

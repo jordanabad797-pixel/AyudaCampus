@@ -38,12 +38,14 @@ fun BarraMensaje(
     onEnviar: () -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    encabezado: (@Composable () -> Unit)? = null
 ) {
     val puedeEnviar = enabled && texto.isNotBlank()
     Surface(modifier = modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            encabezado?.invoke()
             Row(
                 modifier = Modifier
                     .navigationBarsPadding()

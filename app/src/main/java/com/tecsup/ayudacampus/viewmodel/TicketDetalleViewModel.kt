@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
  *  - Comentar: texto no vacío y ticket no CERRADO.
  *  - Cerrar: solo si está RESUELTO y con calificación de 1 a 5.
  *  - Reabrir: solo si está RESUELTO (vuelve a ABIERTO y borra la calificación).
+ *  - Las notas internas de Soporte se quitan aquí: nunca llegan a la vista del estudiante.
  */
 class TicketDetalleViewModel(
     private val repo: AyudaRepository,
@@ -30,7 +31,10 @@ class TicketDetalleViewModel(
 ) : ViewModel() {
 
     private val detalle: StateFlow<Resultado> = repo.observarTicket(ticketId)
-        .map { t -> if (t != null && t.ticket.clienteId == usuario.id) Resultado.Listo(t) else Resultado.NoEncontrado }
+        .map { t ->
+            if (t != null && t.ticket.clienteId == usuario.id) Resultado.Listo(t.sinNotasInternas())
+            else Resultado.NoEncontrado
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Resultado.Cargando)
 
     val ticket: StateFlow<TicketConDetalle?> = detalle

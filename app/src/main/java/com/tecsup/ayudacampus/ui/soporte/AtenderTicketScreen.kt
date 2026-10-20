@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +43,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +63,7 @@ import com.tecsup.ayudacampus.ui.components.Estrellas
 import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
 import com.tecsup.ayudacampus.ui.components.SlaChip
+import com.tecsup.ayudacampus.ui.theme.EstadoAbierto
 import com.tecsup.ayudacampus.ui.theme.color
 import com.tecsup.ayudacampus.viewmodel.AtenderViewModel
 
@@ -75,6 +80,7 @@ fun AtenderTicketScreen(
     val respuesta by vm.respuesta.collectAsStateWithLifecycle()
     val procesando by vm.procesando.collectAsStateWithLifecycle()
     val sla by vm.sla.collectAsStateWithLifecycle()
+    val notaInterna by vm.notaInterna.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
@@ -91,8 +97,11 @@ fun AtenderTicketScreen(
                     texto = respuesta,
                     onTexto = vm::escribir,
                     onEnviar = { vm.responder() },
-                    placeholder = "Responder al cliente…",
-                    enabled = !procesando
+                    placeholder = if (notaInterna) "Escribe una nota interna…" else "Responder al cliente…",
+                    enabled = !procesando,
+                    encabezado = {
+                        SelectorNotaInterna(activa = notaInterna, onCambio = vm::cambiarNotaInterna)
+                    }
                 )
             }
         },
@@ -166,10 +175,41 @@ fun AtenderTicketScreen(
                     autor = c.autorNombre,
                     texto = c.texto,
                     fecha = c.fecha,
-                    esPropio = c.autorId == vm.soporteId
+                    esPropio = c.autorId == vm.soporteId,
+                    interna = c.interno
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SelectorNotaInterna(activa: Boolean, onCambio: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = activa, role = Role.Switch, onValueChange = onCambio)
+            .padding(start = 16.dp, end = 12.dp, top = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Outlined.Lock,
+            contentDescription = null,
+            tint = if (activa) EstadoAbierto else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            if (activa) "Nota interna: el estudiante no la verá" else "Nota interna",
+            style = MaterialTheme.typography.labelMedium,
+            color = if (activa) EstadoAbierto else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = activa,
+            onCheckedChange = null,
+            modifier = Modifier.scale(0.8f)
+        )
     }
 }
 

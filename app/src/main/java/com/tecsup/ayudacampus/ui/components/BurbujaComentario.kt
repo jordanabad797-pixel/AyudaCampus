@@ -1,5 +1,6 @@
 package com.tecsup.ayudacampus.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,15 +8,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.tecsup.ayudacampus.ui.theme.EstadoAbierto
 
 /**
  * [ENTREGADO] Un mensaje de la conversación del ticket.
@@ -30,10 +38,19 @@ fun BurbujaComentario(
     texto: String,
     fecha: Long,
     esPropio: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    interna: Boolean = false
 ) {
-    val fondo = if (esPropio) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiaryContainer
-    val contenido = if (esPropio) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiaryContainer
+    val fondo = when {
+        interna -> EstadoAbierto.copy(alpha = 0.14f)
+        esPropio -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val contenido = when {
+        interna -> MaterialTheme.colorScheme.onSurface
+        esPropio -> MaterialTheme.colorScheme.onPrimary
+        else -> MaterialTheme.colorScheme.onTertiaryContainer
+    }
     // La "colita" de la burbuja apunta hacia quien habla.
     val forma = if (esPropio) {
         RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomEnd = 4.dp, bottomStart = 16.dp)
@@ -49,9 +66,27 @@ fun BurbujaComentario(
             color = fondo,
             contentColor = contenido,
             shape = forma,
+            border = if (interna) BorderStroke(1.dp, EstadoAbierto.copy(alpha = 0.6f)) else null,
             modifier = Modifier.widthIn(max = 290.dp)
         ) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                if (interna) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Outlined.Lock,
+                            contentDescription = null,
+                            tint = EstadoAbierto,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "Nota interna · solo Soporte",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = EstadoAbierto
+                        )
+                    }
+                    Spacer(Modifier.height(2.dp))
+                }
                 Text(
                     text = "${if (esPropio) "Tú" else autor} · ${Formatos.hora(fecha)}",
                     style = MaterialTheme.typography.labelSmall,

@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
  *  - Puede dejar el ticket en ABIERTO, EN_PROCESO o RESUELTO y cambiar su prioridad.
  *  - NO puede cerrarlo (solo el estudiante, con calificación).
  *  - Un ticket CERRADO ya no se modifica ni se comenta.
+ *  - Puede escribir notas internas, que el estudiante no ve.
  */
 class AtenderViewModel(
     private val repo: AyudaRepository,
@@ -59,6 +60,10 @@ class AtenderViewModel(
     private val _respuesta = MutableStateFlow("")
     val respuesta: StateFlow<String> = _respuesta.asStateFlow()
 
+    private val _notaInterna = MutableStateFlow(false)
+    /** true → el próximo mensaje se guarda como nota interna (solo Soporte la ve). */
+    val notaInterna: StateFlow<Boolean> = _notaInterna.asStateFlow()
+
     private val _procesando = MutableStateFlow(false)
     val procesando: StateFlow<Boolean> = _procesando.asStateFlow()
 
@@ -87,6 +92,10 @@ class AtenderViewModel(
         _respuesta.value = texto
     }
 
+    fun cambiarNotaInterna(activa: Boolean) {
+        _notaInterna.value = activa
+    }
+
     fun responder(texto: String = _respuesta.value) {
         val limpio = texto.trim()
         if (limpio.isEmpty()) return
@@ -95,8 +104,9 @@ class AtenderViewModel(
             return
         }
         ejecutar {
-            repo.agregarComentario(ticketId, soporte, limpio)
+            repo.agregarComentario(ticketId, soporte, limpio, interno = _notaInterna.value)
             _respuesta.value = ""
+            _notaInterna.value = false
         }
     }
 

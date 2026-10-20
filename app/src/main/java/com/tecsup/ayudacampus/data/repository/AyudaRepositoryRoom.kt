@@ -115,7 +115,7 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
     override suspend fun reabrir(ticketId: Int) = ticketDao.reabrir(ticketId)
 
     /** Copia nombre y rol del autor en el comentario ("foto" del momento). */
-    override suspend fun agregarComentario(ticketId: Int, autor: Usuario, texto: String) =
+    override suspend fun agregarComentario(ticketId: Int, autor: Usuario, texto: String, interno: Boolean) =
         ticketDao.insertarComentario(
             Comentario(
                 ticketId = ticketId,
@@ -123,7 +123,8 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
                 autorNombre = autor.nombre,
                 autorRol = autor.rol,
                 texto = texto.trim(),
-                fecha = System.currentTimeMillis()
+                fecha = System.currentTimeMillis(),
+                interno = interno
             )
         )
 

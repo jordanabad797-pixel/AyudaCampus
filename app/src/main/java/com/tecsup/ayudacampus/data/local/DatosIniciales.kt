@@ -13,7 +13,7 @@ import com.tecsup.ayudacampus.model.Rol
  * [GUIADO · Paso 3] Datos de prueba ficticios (Ley 29733) que se cargan SOLO la primera vez.
  *
  * Carga: 5 categorías, 2 usuarios (estudiante y soporte), 6 tickets en distintos
- * estados y prioridades, y 4 comentarios, para que el panel no aparezca vacío.
+ * estados y prioridades, 4 comentarios y 1 nota interna, para que el panel no aparezca vacío.
  */
 object DatosIniciales {
 
@@ -127,6 +127,13 @@ object DatosIniciales {
                 Comentario(
                     ticketId = wifi, autorId = soporte.id, autorNombre = soporte.nombre, autorRol = soporte.rol,
                     texto = "Reiniciamos el equipo. ¿Ya tienes señal?", fecha = ahora - 30 * 60_000L
+                )
+            )
+            ticketDao.insertarComentario(
+                Comentario(
+                    ticketId = wifi, autorId = soporte.id, autorNombre = soporte.nombre, autorRol = soporte.rol,
+                    texto = "Nota interna: el access point del pabellón B tiene firmware antiguo. Si vuelve a fallar, escalar a Redes.",
+                    fecha = ahora - 25 * 60_000L, interno = true
                 )
             )
             ticketDao.insertarComentario(
