@@ -92,6 +92,10 @@ interface TicketDao {
     @Query("SELECT COUNT(*) FROM tickets WHERE prioridad = 'ALTA' AND estado = 'ABIERTO' AND fecha < :limite")
     fun contarAltasSinAtender(limite: Long): Flow<Int>
 
+    /** Promedio en milisegundos de (fechaCierre − fecha) de los tickets CERRADOS; null si no hay ninguno. */
+    @Query("SELECT AVG(fechaCierre - fecha) FROM tickets WHERE estado = 'CERRADO' AND fechaCierre IS NOT NULL")
+    fun promedioResolucion(): Flow<Double?>
+
     /** Para la regla "no se puede eliminar una categoría que ya tiene tickets" (Paso 11). */
     @Query("SELECT COUNT(*) FROM tickets WHERE categoriaId = :categoriaId")
     suspend fun contarDeCategoria(categoriaId: Int): Int

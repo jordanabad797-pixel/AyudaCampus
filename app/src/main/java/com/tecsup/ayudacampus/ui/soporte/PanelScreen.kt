@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Button
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.ui.components.AppTopBar
+import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.graficos.GraficoBarras
 import com.tecsup.ayudacampus.ui.components.graficos.GraficoDona
 import com.tecsup.ayudacampus.ui.theme.Peligro
@@ -61,6 +63,8 @@ fun PanelScreen(
     val porEstado by vm.porEstado.collectAsStateWithLifecycle()
     val porCategoria by vm.porCategoria.collectAsStateWithLifecycle()
     val altas by vm.altasSinAtender.collectAsStateWithLifecycle()
+    val promedio by vm.promedioResolucion.collectAsStateWithLifecycle()
+    val cerrados by vm.cerrados.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -103,6 +107,8 @@ fun PanelScreen(
             AnimatedVisibility(visible = altas > 0) {
                 AlertaAltas(cantidad = altas, onVer = onVerBandeja)
             }
+
+            TarjetaPromedio(promedio = promedio, cerrados = cerrados)
 
             TarjetaGrafico("Tickets por estado") {
                 GraficoDona(datos = porEstado)
@@ -155,6 +161,54 @@ private fun TarjetaGrafico(titulo: String, contenido: @Composable () -> Unit) {
             Text(titulo, style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.height(16.dp))
             contenido()
+        }
+    }
+}
+
+@Composable
+private fun TarjetaPromedio(promedio: Long?, cerrados: Int) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.primary,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Icon(
+                    Icons.Outlined.Timer,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .size(24.dp)
+                )
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Tiempo promedio de resolución",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    promedio?.let { Formatos.duracion(it) } ?: "Sin datos",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    when (cerrados) {
+                        0 -> "Aún no hay tickets cerrados"
+                        1 -> "Basado en 1 ticket cerrado"
+                        else -> "Basado en $cerrados tickets cerrados"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

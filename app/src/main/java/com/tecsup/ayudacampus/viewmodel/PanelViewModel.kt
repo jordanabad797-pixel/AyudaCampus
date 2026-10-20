@@ -24,7 +24,11 @@ class PanelViewModel(private val repo: AyudaRepository) : ViewModel() {
     val abiertos: StateFlow<Int> = contar(EstadoTicket.ABIERTO)
     val enProceso: StateFlow<Int> = contar(EstadoTicket.EN_PROCESO)
     val resueltos: StateFlow<Int> = contar(EstadoTicket.RESUELTO)
-    private val cerrados: StateFlow<Int> = contar(EstadoTicket.CERRADO)
+    val cerrados: StateFlow<Int> = contar(EstadoTicket.CERRADO)
+
+    /** Milisegundos promedio entre la creación y el cierre (null = aún no hay tickets cerrados). */
+    val promedioResolucion: StateFlow<Long?> = repo.observarPromedioResolucion()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val porEstado: StateFlow<List<DatoGrafico>> =
         combine(abiertos, enProceso, resueltos, cerrados) { a, p, r, c ->
