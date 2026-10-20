@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.data.local.entity.Categoria
 import com.tecsup.ayudacampus.model.Prioridad
+import com.tecsup.ayudacampus.model.ReglasSla
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.AyudaTextField
@@ -244,11 +245,7 @@ private fun SelectorPrioridad(seleccionada: Prioridad, enabled: Boolean, onElegi
 
 @Composable
 private fun TiempoEstimado(prioridad: Prioridad) {
-    val horas = when (prioridad) {
-        Prioridad.ALTA -> 4
-        Prioridad.MEDIA -> 24
-        Prioridad.BAJA -> 72
-    }
+    val horas = ReglasSla.plazoHoras(prioridad)
     Surface(
         modifier = Modifier
             .fillMaxWidth()

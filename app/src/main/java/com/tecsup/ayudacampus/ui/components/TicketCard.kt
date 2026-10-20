@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.tecsup.ayudacampus.model.EstadoSla
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.Prioridad
 import com.tecsup.ayudacampus.ui.theme.AyudaTheme
@@ -43,7 +44,8 @@ fun TicketCard(
     prioridad: Prioridad,
     fecha: Long,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sla: EstadoSla? = null
 ) {
     Card(
         onClick = onClick,
@@ -91,6 +93,10 @@ fun TicketCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                    if (sla != null) {
+                        Spacer(Modifier.height(6.dp))
+                        SlaChip(sla)
                     }
                 }
             }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tecsup.ayudacampus.data.local.entity.estadoEnum
 import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.data.repository.AyudaRepository
+import com.tecsup.ayudacampus.model.EstadoSla
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.FiltroEstado
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,6 +70,11 @@ class MisTicketsViewModel(
     val total: StateFlow<Int> = misTickets
         .map { it.orEmpty().size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /** SLA de cada ticket, recalculado cada minuto. */
+    val sla: StateFlow<Map<Int, EstadoSla>> =
+        combine(misTickets, relojPorMinuto()) { lista, ahora -> lista.orEmpty().slaPorTicket(ahora) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun cambiarFiltro(filtro: FiltroEstado) {
         _filtro.value = filtro

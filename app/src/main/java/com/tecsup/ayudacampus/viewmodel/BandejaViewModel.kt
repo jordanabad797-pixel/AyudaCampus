@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tecsup.ayudacampus.data.local.entity.estadoEnum
 import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.data.repository.AyudaRepository
+import com.tecsup.ayudacampus.model.EstadoSla
 import com.tecsup.ayudacampus.model.FiltroEstado
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,6 +32,11 @@ class BandejaViewModel(repo: AyudaRepository) : ViewModel() {
     val cargando: StateFlow<Boolean> = todos
         .map { it == null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    /** SLA de cada ticket, recalculado cada minuto. */
+    val sla: StateFlow<Map<Int, EstadoSla>> =
+        combine(todos, relojPorMinuto()) { lista, ahora -> lista.orEmpty().slaPorTicket(ahora) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun cambiarFiltro(filtro: FiltroEstado) {
         _filtro.value = filtro

@@ -46,6 +46,7 @@ import com.tecsup.ayudacampus.data.local.entity.estadoEnum
 import com.tecsup.ayudacampus.data.local.entity.prioridadEnum
 import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.data.local.relation.conversacion
+import com.tecsup.ayudacampus.model.EstadoSla
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
@@ -58,6 +59,7 @@ import com.tecsup.ayudacampus.ui.components.Estrellas
 import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
 import com.tecsup.ayudacampus.ui.components.PrioridadChip
+import com.tecsup.ayudacampus.ui.components.SlaChip
 import com.tecsup.ayudacampus.ui.components.StepperTicket
 import com.tecsup.ayudacampus.ui.components.VarianteBoton
 import com.tecsup.ayudacampus.ui.theme.Exito
@@ -76,6 +78,7 @@ fun DetalleTicketScreen(
     val comentarioFinal by vm.comentarioFinal.collectAsStateWithLifecycle()
     val procesando by vm.procesando.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
+    val sla by vm.sla.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(error) {
@@ -129,7 +132,8 @@ fun DetalleTicketScreen(
                 onComentarioFinal = vm::escribirComentarioFinal,
                 onCerrar = { vm.cerrar() },
                 onReabrir = vm::reabrir,
-                contentPadding = padding
+                contentPadding = padding,
+                sla = sla
             )
         }
     }
@@ -146,7 +150,8 @@ private fun ContenidoDetalle(
     onComentarioFinal: (String) -> Unit,
     onCerrar: () -> Unit,
     onReabrir: () -> Unit,
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    sla: EstadoSla?
 ) {
     val estado = detalle.ticket.estadoEnum
     val conversacion = detalle.conversacion
@@ -168,7 +173,7 @@ private fun ContenidoDetalle(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { CabeceraTicket(detalle) }
+        item { CabeceraTicket(detalle, sla) }
         item {
             StepperTicket(estado = estado, modifier = Modifier.padding(vertical = 8.dp))
         }
@@ -234,7 +239,7 @@ private fun ContenidoDetalle(
 private const val INDICE_PRIMER_MENSAJE = 3
 
 @Composable
-private fun CabeceraTicket(detalle: TicketConDetalle) {
+private fun CabeceraTicket(detalle: TicketConDetalle, sla: EstadoSla?) {
     val t = detalle.ticket
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -248,6 +253,7 @@ private fun CabeceraTicket(detalle: TicketConDetalle) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EstadoChip(t.estadoEnum)
                 PrioridadChip(t.prioridadEnum)
+                if (sla != null) SlaChip(sla)
             }
             Spacer(Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {

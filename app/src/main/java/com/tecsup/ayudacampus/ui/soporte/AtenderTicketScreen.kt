@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.data.local.entity.estadoEnum
 import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.data.local.relation.conversacion
+import com.tecsup.ayudacampus.model.EstadoSla
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.Prioridad
 import com.tecsup.ayudacampus.ui.components.AppTopBar
@@ -57,6 +58,7 @@ import com.tecsup.ayudacampus.ui.components.BurbujaComentario
 import com.tecsup.ayudacampus.ui.components.Estrellas
 import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
+import com.tecsup.ayudacampus.ui.components.SlaChip
 import com.tecsup.ayudacampus.ui.theme.color
 import com.tecsup.ayudacampus.viewmodel.AtenderViewModel
 
@@ -72,6 +74,7 @@ fun AtenderTicketScreen(
     val hayCambios by vm.hayCambios.collectAsStateWithLifecycle()
     val respuesta by vm.respuesta.collectAsStateWithLifecycle()
     val procesando by vm.procesando.collectAsStateWithLifecycle()
+    val sla by vm.sla.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
@@ -114,7 +117,7 @@ fun AtenderTicketScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { DatosTicket(t) }
+            item { DatosTicket(t, sla) }
 
             item { Seccion("Estado") }
             item {
@@ -176,7 +179,7 @@ private fun Seccion(titulo: String) {
 }
 
 @Composable
-private fun DatosTicket(detalle: TicketConDetalle) {
+private fun DatosTicket(detalle: TicketConDetalle, sla: EstadoSla?) {
     val t = detalle.ticket
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -186,6 +189,10 @@ private fun DatosTicket(detalle: TicketConDetalle) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(t.titulo, style = MaterialTheme.typography.titleMedium)
+            if (sla != null) {
+                Spacer(Modifier.height(8.dp))
+                SlaChip(sla)
+            }
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconoCategoria(clave = detalle.categoria.icono, tamano = 24.dp)

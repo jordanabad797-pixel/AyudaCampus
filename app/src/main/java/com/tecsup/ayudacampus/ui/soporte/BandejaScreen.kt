@@ -38,6 +38,7 @@ fun BandejaScreen(
     val tickets by vm.tickets.collectAsStateWithLifecycle()
     val filtro by vm.filtro.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
+    val sla by vm.sla.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = { AppTopBar(titulo = "Tickets", onAtras = onAtras) },
@@ -77,7 +78,8 @@ fun BandejaScreen(
                             prioridad = item.ticket.prioridadEnum,
                             fecha = item.ticket.fecha,
                             onClick = { onAtender(item.ticket.id) },
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier.animateItem(),
+                            sla = sla[item.ticket.id]
                         )
                     }
                 }

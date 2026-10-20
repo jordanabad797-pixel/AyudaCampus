@@ -68,6 +68,7 @@ fun MisTicketsScreen(
     val busqueda by vm.busqueda.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
     val abiertos by vm.abiertos.collectAsStateWithLifecycle()
+    val sla by vm.sla.collectAsStateWithLifecycle()
 
     val primerNombre = nombreUsuario.substringBefore(" ")
     val textoAbiertos = if (abiertos == 1) "1 abierto" else "$abiertos abiertos"
@@ -144,7 +145,8 @@ fun MisTicketsScreen(
                             prioridad = item.ticket.prioridadEnum,
                             fecha = item.ticket.fecha,
                             onClick = { onAbrirTicket(item.ticket.id) },
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier.animateItem(),
+                            sla = sla[item.ticket.id]
                         )
                     }
                 }

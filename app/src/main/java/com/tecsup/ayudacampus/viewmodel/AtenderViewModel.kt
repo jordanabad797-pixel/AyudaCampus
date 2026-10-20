@@ -7,6 +7,7 @@ import com.tecsup.ayudacampus.data.local.entity.estadoEnum
 import com.tecsup.ayudacampus.data.local.entity.prioridadEnum
 import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.data.repository.AyudaRepository
+import com.tecsup.ayudacampus.model.EstadoSla
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.Prioridad
 import kotlinx.coroutines.channels.Channel
@@ -33,6 +34,9 @@ class AtenderViewModel(
 ) : ViewModel() {
 
     val ticket: StateFlow<TicketConDetalle?> = repo.observarTicket(ticketId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val sla: StateFlow<EstadoSla?> = combine(ticket, relojPorMinuto()) { t, ahora -> t?.sla(ahora) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _estadoElegido = MutableStateFlow<EstadoTicket?>(null)
