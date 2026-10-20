@@ -43,6 +43,7 @@ import com.tecsup.ayudacampus.ui.cliente.LoginScreen
 import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
 import com.tecsup.ayudacampus.ui.cliente.NuevoTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.PerfilScreen
+import com.tecsup.ayudacampus.ui.cliente.RegistroScreen
 import com.tecsup.ayudacampus.ui.cliente.SplashScreen
 import com.tecsup.ayudacampus.ui.soporte.AjustesScreen
 import com.tecsup.ayudacampus.ui.soporte.AtenderTicketScreen
@@ -58,6 +59,7 @@ import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
 import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
 import com.tecsup.ayudacampus.viewmodel.NuevoTicketViewModel
 import com.tecsup.ayudacampus.viewmodel.PanelViewModel
+import com.tecsup.ayudacampus.viewmodel.RegistroViewModel
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
 import com.tecsup.ayudacampus.viewmodel.TicketDetalleViewModel
 
@@ -132,7 +134,15 @@ fun NavAyuda() {
                 }
 
                 composable(Rutas.LOGIN) {
-                    LoginScreen(vm = sesionVm)
+                    LoginScreen(vm = sesionVm, onRegistrarse = { navController.navigate(Rutas.REGISTRO) })
+                }
+
+                composable(Rutas.REGISTRO) {
+                    val vm = ayudaViewModel { app -> RegistroViewModel(app.repository, app.preferencias) }
+                    LaunchedEffect(Unit) {
+                        vm.registrado.collect { navController.irAInicio(Rol.CLIENTE) }
+                    }
+                    RegistroScreen(vm = vm, onAtras = { navController.popBackStack() })
                 }
 
                 navigation(startDestination = Rutas.MIS_TICKETS, route = Rutas.GRAFO_CLIENTE) {

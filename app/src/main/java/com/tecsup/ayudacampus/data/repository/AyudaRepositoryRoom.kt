@@ -10,6 +10,7 @@ import com.tecsup.ayudacampus.model.ConteoCategoria
 import com.tecsup.ayudacampus.model.EstadoTicket
 import com.tecsup.ayudacampus.model.Prioridad
 import com.tecsup.ayudacampus.model.Rol
+import com.tecsup.ayudacampus.model.Validaciones
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -33,6 +34,20 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
     override suspend fun obtenerUsuario(id: Int): Usuario? = usuarioDao.obtener(id)
 
     override suspend fun obtenerUsuarioPorRol(rol: Rol): Usuario? = usuarioDao.primeroPorRol(rol.name)
+
+    override suspend fun existeCorreo(correo: String): Boolean =
+        usuarioDao.contarPorCorreo(Validaciones.normalizarCorreo(correo)) > 0
+
+    override suspend fun registrarEstudiante(nombre: String, correo: String, clave: String): Usuario {
+        val nuevo = Usuario(
+            nombre = nombre.trim(),
+            correo = Validaciones.normalizarCorreo(correo),
+            clave = clave,
+            rol = Rol.CLIENTE.name
+        )
+        val id = usuarioDao.insertar(nuevo)
+        return nuevo.copy(id = id.toInt())
+    }
 
     // ---------- Categorías (ejemplo resuelto) ----------
 

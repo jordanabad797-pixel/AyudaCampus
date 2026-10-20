@@ -7,6 +7,7 @@ import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.data.prefs.PreferenciasStore
 import com.tecsup.ayudacampus.data.repository.AyudaRepository
 import com.tecsup.ayudacampus.model.Rol
+import com.tecsup.ayudacampus.model.Validaciones
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,7 +86,7 @@ class SesionViewModel(
             correoLimpio.isEmpty() && clave.isEmpty() -> "Ingresa tu correo y tu contraseña"
             correoLimpio.isEmpty() -> "Ingresa tu correo"
             clave.isEmpty() -> "Ingresa tu contraseña"
-            !FORMATO_CORREO.matches(correoLimpio) -> "El correo no tiene un formato válido"
+            !Validaciones.esCorreoValido(correoLimpio) -> "El correo no tiene un formato válido"
             else -> null
         }
         if (errorValidacion != null) {
@@ -149,9 +150,5 @@ class SesionViewModel(
 
     fun cerrarSesion() {
         viewModelScope.launch { prefs.cerrarSesion() }
-    }
-
-    private companion object {
-        val FORMATO_CORREO = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
     }
 }

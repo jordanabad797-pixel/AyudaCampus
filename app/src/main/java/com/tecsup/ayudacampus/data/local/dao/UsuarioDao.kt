@@ -2,6 +2,7 @@ package com.tecsup.ayudacampus.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.tecsup.ayudacampus.data.local.entity.Usuario
 
@@ -26,6 +27,13 @@ interface UsuarioDao {
     /** Para "Cambiar de perfil" en modo práctica: el primer usuario de ese rol. */
     @Query("SELECT * FROM usuarios WHERE rol = :rol ORDER BY id LIMIT 1")
     suspend fun primeroPorRol(rol: String): Usuario?
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE correo = :correo COLLATE NOCASE")
+    suspend fun contarPorCorreo(correo: String): Int
+
+    /** ABORT: si el correo ya existe, el índice único lanza una excepción en lugar de reemplazar. */
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertar(usuario: Usuario): Long
 
     @Insert
     suspend fun insertarTodos(lista: List<Usuario>)

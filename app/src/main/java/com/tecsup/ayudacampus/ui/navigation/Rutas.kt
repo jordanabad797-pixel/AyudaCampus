@@ -18,6 +18,7 @@ object Rutas {
     // Comunes
     const val SPLASH = "splash"
     const val LOGIN = "login"
+    const val REGISTRO = "registro"
 
     // Grafos (uno por perfil)
     const val GRAFO_CLIENTE = "grafo_cliente"

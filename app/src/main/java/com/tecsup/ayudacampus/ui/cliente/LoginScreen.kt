@@ -70,7 +70,7 @@ import kotlinx.coroutines.launch
  * Al elegir la pestaña, todo el tema cambia de color (cian ↔ violeta).
  */
 @Composable
-fun LoginScreen(vm: SesionViewModel) {
+fun LoginScreen(vm: SesionViewModel, onRegistrarse: () -> Unit = {}) {
     val rol by vm.rolSeleccionado.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
@@ -152,6 +152,23 @@ fun LoginScreen(vm: SesionViewModel) {
             }
 
             AyudaButton(texto = "Ingresar", onClick = ingresar, cargando = cargando)
+
+            AnimatedVisibility(visible = rol == Rol.CLIENTE) {
+                TextButton(
+                    onClick = onRegistrarse,
+                    enabled = !cargando,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Text("¿No tienes cuenta? ", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Regístrate",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
 
             Spacer(Modifier.height(24.dp))
             TarjetaModoPractica(rol)
