@@ -133,10 +133,10 @@ com.tecsup.ayudacampus
 
 | Pregunta | Respuesta |
 |---|---|
-| ¿Por qué las reglas de estado están en el ViewModel y no en el DAO ni en el Composable? | Porque son lógica de negocio: el DAO solo guarda datos y el Composable solo dibuja; en el ViewModel se prueban y reutilizan sin depender de la UI ni de Room. |
-| ¿Por qué `crearTicket` es suspend y `observarTicket` es Flow? | Crear es una acción única que termina; observar debe avisar cada vez que el ticket cambia para que la pantalla se actualice sola. |
-| ¿Qué pasaría si un ticket pudiera cerrarse sin calificación? | Se perdería la medición de la calidad de la atención y el panel no podría evaluar al soporte. |
-| ¿Qué debería cambiar si mañana los tickets viven en un servidor? | Solo una nueva implementación de `AyudaRepository` (por ejemplo, con Retrofit); ViewModels y pantallas no cambian porque dependen de la interface. |
+| ¿Por qué las reglas de estado están en el ViewModel y no en el DAO ni en el Composable? | Porque el DAO solo debe guardar y leer datos y el Composable solo mostrar; si pongo las reglas en el ViewModel, se cumplen igual aunque cambie la pantalla y las puedo probar sin emulador. |
+| ¿Por qué `crearTicket` es suspend y `observarTicket` es Flow? | Crear un ticket se hace una sola vez y termina; en cambio, el detalle debe enterarse de cada cambio (un comentario, un nuevo estado), y el Flow se lo avisa a la pantalla sin recargar. |
+| ¿Qué pasaría si un ticket pudiera cerrarse sin calificación? | Soporte no sabría si el estudiante quedó conforme y no habría forma de medir la calidad de la atención; por eso el ViewModel exige de 1 a 5 estrellas antes de cerrar. |
+| ¿Qué debería cambiar si mañana los tickets viven en un servidor? | Solo crearía otra clase que implemente `AyudaRepository` (por ejemplo, con Retrofit); los ViewModels y las pantallas quedarían igual porque solo conocen la interface. |
 
 ## Cómo ejecutar
 
