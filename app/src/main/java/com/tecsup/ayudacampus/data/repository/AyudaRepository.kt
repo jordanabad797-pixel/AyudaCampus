@@ -27,11 +27,16 @@ interface AyudaRepository {
     suspend fun existeCorreo(correo: String): Boolean
     /** Crea una cuenta con rol CLIENTE y la devuelve con su id. */
     suspend fun registrarEstudiante(nombre: String, correo: String, clave: String): Usuario
+    suspend fun obtenerUsuarioPorCorreo(correo: String): Usuario?
+    suspend fun verificarClave(usuarioId: Int, clave: String): Boolean
+    /** debeCambiar = true → contraseña temporal: al ingresar, la app obliga a crear una nueva. */
+    suspend fun actualizarClave(usuarioId: Int, nueva: String, debeCambiar: Boolean)
 
     // Categorías (ejemplo resuelto)
     fun observarCategorias(): Flow<List<Categoria>>
     fun observarCategoriasActivas(): Flow<List<Categoria>>
     suspend fun obtenerCategoria(id: Int): Categoria?
+    suspend fun obtenerCategoriaPorNombre(nombre: String): Categoria?
     suspend fun guardarCategoria(c: Categoria)
     suspend fun eliminarCategoria(c: Categoria)
     suspend fun cambiarActiva(id: Int, activa: Boolean)
@@ -46,6 +51,7 @@ interface AyudaRepository {
         ubicacion: String,
         prioridad: Prioridad
     ): Long
+    suspend fun contarPendientesConTitulo(clienteId: Int, titulo: String): Int
     fun observarTicketsCliente(clienteId: Int): Flow<List<TicketConDetalle>>
     fun observarTodosLosTickets(): Flow<List<TicketConDetalle>>
     fun observarTicket(id: Int): Flow<TicketConDetalle?>

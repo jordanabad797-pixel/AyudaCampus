@@ -71,9 +71,7 @@ class RegistroViewModel(
             !Validaciones.esCorreoValido(estado.correo) -> "El correo no tiene un formato válido"
             else -> null
         }
-        val errorClave = if (estado.clave.length < Validaciones.MIN_CLAVE) {
-            "La contraseña debe tener al menos ${Validaciones.MIN_CLAVE} caracteres"
-        } else null
+        val errorClave = Validaciones.errorNuevaClave(estado.clave)
         val errorConfirmacion = when {
             estado.confirmacion.isEmpty() -> "Repite tu contraseña"
             estado.confirmacion != estado.clave -> "Las contraseñas no coinciden"

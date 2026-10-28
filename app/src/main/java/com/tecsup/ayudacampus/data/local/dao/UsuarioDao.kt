@@ -31,6 +31,12 @@ interface UsuarioDao {
     @Query("SELECT COUNT(*) FROM usuarios WHERE correo = :correo COLLATE NOCASE")
     suspend fun contarPorCorreo(correo: String): Int
 
+    @Query("SELECT * FROM usuarios WHERE correo = :correo COLLATE NOCASE LIMIT 1")
+    suspend fun obtenerPorCorreo(correo: String): Usuario?
+
+    @Query("UPDATE usuarios SET clave = :clave, debeCambiarClave = :debeCambiar WHERE id = :id")
+    suspend fun actualizarClave(id: Int, clave: String, debeCambiar: Boolean)
+
     /** ABORT: si el correo ya existe, el índice único lanza una excepción en lugar de reemplazar. */
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertar(usuario: Usuario): Long

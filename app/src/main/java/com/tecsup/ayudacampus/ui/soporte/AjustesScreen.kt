@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -17,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
+import com.tecsup.ayudacampus.ui.components.FilaAccion
 import com.tecsup.ayudacampus.ui.components.FilaPreferencia
 import com.tecsup.ayudacampus.ui.components.GrupoPreferencias
 import com.tecsup.ayudacampus.ui.components.NotaDataStore
@@ -29,6 +32,7 @@ import com.tecsup.ayudacampus.viewmodel.SesionViewModel
 fun AjustesScreen(
     usuario: Usuario,
     sesionVm: SesionViewModel,
+    onCambiarClave: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
     val modoOscuro by sesionVm.modoOscuro.collectAsStateWithLifecycle()
@@ -50,6 +54,16 @@ fun AjustesScreen(
             TarjetaUsuario(nombre = usuario.nombre, correo = usuario.correo, etiqueta = "Perfil activo")
 
             TarjetaCambiarPerfil(destino = "Estudiante", onClick = sesionVm::cambiarPerfil)
+
+            Text("Seguridad", style = MaterialTheme.typography.titleSmall)
+            GrupoPreferencias {
+                FilaAccion(
+                    titulo = "Cambiar contraseña",
+                    detalle = "Actualiza la contraseña de tu cuenta",
+                    icono = Icons.Outlined.Key,
+                    onClick = onCambiarClave
+                )
+            }
 
             Text("Preferencias", style = MaterialTheme.typography.titleSmall)
             GrupoPreferencias {

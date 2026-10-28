@@ -13,4 +13,8 @@ object Validaciones {
 
     /** El correo se guarda siempre igual: sin espacios y en minúsculas. */
     fun normalizarCorreo(correo: String): String = correo.trim().lowercase()
+
+    /** Regla única para toda contraseña nueva (registro y cambio de contraseña). */
+    fun errorNuevaClave(clave: String): String? =
+        if (clave.length < MIN_CLAVE) "La contraseña debe tener al menos $MIN_CLAVE caracteres" else null
 }

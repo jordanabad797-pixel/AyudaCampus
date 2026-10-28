@@ -17,6 +17,7 @@ import com.tecsup.ayudacampus.data.local.entity.Usuario
  *
  * Registra las 4 tablas y expone un DAO por grupo de operaciones.
  * version 3: se agregó la columna comentarios.interno (notas internas de Soporte).
+ * version 4: se agregó usuarios.debeCambiarClave (contraseña temporal).
  * Si cambias una entidad después de ejecutar la app, sube [version] o desinstala la app.
  */
 @Database(
@@ -26,7 +27,7 @@ import com.tecsup.ayudacampus.data.local.entity.Usuario
         Ticket::class,
         Comentario::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AyudaDatabase : RoomDatabase() {

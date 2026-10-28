@@ -24,7 +24,9 @@ data class Usuario(
     val nombre: String,
     val correo: String,
     val clave: String, // Solo datos ficticios de práctica (Ley 29733). En producción se guardaría un hash.
-    val rol: String = Rol.CLIENTE.name
+    val rol: String = Rol.CLIENTE.name,
+    /** true → tiene una contraseña temporal y debe cambiarla antes de entrar. */
+    val debeCambiarClave: Boolean = false
 )
 
 /** Rol del usuario como enum (lectura segura del texto guardado). */

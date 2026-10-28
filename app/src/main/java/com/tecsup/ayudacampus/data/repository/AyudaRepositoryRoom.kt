@@ -49,6 +49,15 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
         return nuevo.copy(id = id.toInt())
     }
 
+    override suspend fun obtenerUsuarioPorCorreo(correo: String): Usuario? =
+        usuarioDao.obtenerPorCorreo(Validaciones.normalizarCorreo(correo))
+
+    override suspend fun verificarClave(usuarioId: Int, clave: String): Boolean =
+        usuarioDao.obtener(usuarioId)?.clave == clave
+
+    override suspend fun actualizarClave(usuarioId: Int, nueva: String, debeCambiar: Boolean) =
+        usuarioDao.actualizarClave(usuarioId, nueva, debeCambiar)
+
     // ---------- Categorías (ejemplo resuelto) ----------
 
     override fun observarCategorias(): Flow<List<Categoria>> = categoriaDao.observarTodas()
@@ -56,6 +65,9 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
     override fun observarCategoriasActivas(): Flow<List<Categoria>> = categoriaDao.observarActivas()
 
     override suspend fun obtenerCategoria(id: Int): Categoria? = categoriaDao.obtener(id)
+
+    override suspend fun obtenerCategoriaPorNombre(nombre: String): Categoria? =
+        categoriaDao.obtenerPorNombre(nombre.trim())
 
     /**
      * id == 0 → categoría nueva (INSERT). id > 0 → edición (UPDATE).
@@ -95,6 +107,9 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
             fecha = System.currentTimeMillis()
         )
     )
+
+    override suspend fun contarPendientesConTitulo(clienteId: Int, titulo: String): Int =
+        ticketDao.contarPendientesConTitulo(clienteId, titulo)
 
     override fun observarTicketsCliente(clienteId: Int): Flow<List<TicketConDetalle>> =
         ticketDao.observarPorCliente(clienteId)

@@ -42,11 +42,13 @@ import com.tecsup.ayudacampus.AyudaApp
 import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.model.Rol
+import com.tecsup.ayudacampus.ui.cliente.CambiarClaveScreen
 import com.tecsup.ayudacampus.ui.cliente.DetalleTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.LoginScreen
 import com.tecsup.ayudacampus.ui.cliente.MisTicketsScreen
 import com.tecsup.ayudacampus.ui.cliente.NuevoTicketScreen
 import com.tecsup.ayudacampus.ui.cliente.PerfilScreen
+import com.tecsup.ayudacampus.ui.cliente.RecuperarClaveScreen
 import com.tecsup.ayudacampus.ui.cliente.RegistroScreen
 import com.tecsup.ayudacampus.ui.cliente.SplashScreen
 import com.tecsup.ayudacampus.ui.soporte.AjustesScreen
@@ -59,10 +61,12 @@ import com.tecsup.ayudacampus.ui.theme.AyudaTheme
 import com.tecsup.ayudacampus.viewmodel.AtenderViewModel
 import com.tecsup.ayudacampus.viewmodel.AyudaViewModelFactory
 import com.tecsup.ayudacampus.viewmodel.BandejaViewModel
+import com.tecsup.ayudacampus.viewmodel.CambiarClaveViewModel
 import com.tecsup.ayudacampus.viewmodel.CategoriasViewModel
 import com.tecsup.ayudacampus.viewmodel.MisTicketsViewModel
 import com.tecsup.ayudacampus.viewmodel.NuevoTicketViewModel
 import com.tecsup.ayudacampus.viewmodel.PanelViewModel
+import com.tecsup.ayudacampus.viewmodel.RecuperarClaveViewModel
 import com.tecsup.ayudacampus.viewmodel.RegistroViewModel
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
 import com.tecsup.ayudacampus.viewmodel.TicketDetalleViewModel
@@ -98,6 +102,9 @@ fun NavAyuda() {
     }
     LaunchedEffect(Unit) {
         sesionVm.aviso.collect { snackbar.showSnackbar(it) }
+    }
+    LaunchedEffect(Unit) {
+        sesionVm.cambiarClaveObligatorio.collect { id -> navController.navigate(Rutas.cambiarClave(id, obligatorio = true)) }
     }
 
     val cerrarSesion: () -> Unit = {
@@ -150,7 +157,44 @@ fun NavAyuda() {
                 }
 
                 composable(Rutas.LOGIN) {
-                    LoginScreen(vm = sesionVm, onRegistrarse = { navController.navigate(Rutas.REGISTRO) })
+                    LoginScreen(
+                        vm = sesionVm,
+                        onRegistrarse = { navController.navigate(Rutas.REGISTRO) },
+                        onOlvideClave = { navController.navigate(Rutas.RECUPERAR_CLAVE) }
+                    )
+                }
+
+                composable(Rutas.RECUPERAR_CLAVE) {
+                    val vm = ayudaViewModel { app -> RecuperarClaveViewModel(app.repository) }
+                    RecuperarClaveScreen(vm = vm, onAtras = { navController.popBackStack() })
+                }
+
+                composable(
+                    route = Rutas.CAMBIAR_CLAVE,
+                    arguments = listOf(
+                        navArgument(Rutas.ARG_USUARIO_ID) { type = NavType.IntType },
+                        navArgument(Rutas.ARG_OBLIGATORIO) {
+                            type = NavType.BoolType
+                            defaultValue = false
+                        }
+                    )
+                ) { entradaClave ->
+                    val usuarioId = entradaClave.arguments?.getInt(Rutas.ARG_USUARIO_ID) ?: 0
+                    val obligatorio = entradaClave.arguments?.getBoolean(Rutas.ARG_OBLIGATORIO) ?: false
+                    val vm = ayudaViewModel { app ->
+                        CambiarClaveViewModel(app.repository, app.preferencias, usuarioId, obligatorio)
+                    }
+                    LaunchedEffect(Unit) {
+                        vm.listo.collect { rol ->
+                            if (obligatorio) {
+                                navController.irAInicio(rol)
+                            } else {
+                                sesionVm.avisar("Contraseña actualizada")
+                                navController.popBackStack()
+                            }
+                        }
+                    }
+                    CambiarClaveScreen(vm = vm, onAtras = { navController.popBackStack() })
                 }
 
                 composable(Rutas.REGISTRO) {
@@ -206,6 +250,7 @@ fun NavAyuda() {
                                 usuario = u,
                                 ticketsVm = ticketsVm,
                                 sesionVm = sesionVm,
+                                onCambiarClave = { navController.navigate(Rutas.cambiarClave(u.id)) },
                                 onCerrarSesion = cerrarSesion
                             )
                         }
@@ -266,7 +311,12 @@ fun NavAyuda() {
 
                     composable(Rutas.AJUSTES) {
                         ConUsuario(usuario, Rol.ADMIN) { u ->
-                            AjustesScreen(usuario = u, sesionVm = sesionVm, onCerrarSesion = cerrarSesion)
+                            AjustesScreen(
+                                usuario = u,
+                                sesionVm = sesionVm,
+                                onCambiarClave = { navController.navigate(Rutas.cambiarClave(u.id)) },
+                                onCerrarSesion = cerrarSesion
+                            )
                         }
                     }
                 }

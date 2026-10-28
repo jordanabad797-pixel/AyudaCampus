@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,14 +39,22 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,6 +74,7 @@ import com.tecsup.ayudacampus.ui.components.Estrellas
 import com.tecsup.ayudacampus.ui.components.Formatos
 import com.tecsup.ayudacampus.ui.components.IconoCategoria
 import com.tecsup.ayudacampus.ui.components.SlaChip
+import com.tecsup.ayudacampus.ui.components.VarianteBoton
 import com.tecsup.ayudacampus.ui.theme.EstadoAbierto
 import com.tecsup.ayudacampus.ui.theme.color
 import com.tecsup.ayudacampus.viewmodel.AtenderViewModel
@@ -82,6 +93,9 @@ fun AtenderTicketScreen(
     val procesando by vm.procesando.collectAsStateWithLifecycle()
     val sla by vm.sla.collectAsStateWithLifecycle()
     val notaInterna by vm.notaInterna.collectAsStateWithLifecycle()
+    val esSolicitudDeCuenta by vm.esSolicitudDeCuenta.collectAsStateWithLifecycle()
+    val claveTemporal by vm.claveTemporal.collectAsStateWithLifecycle()
+    var confirmarRestablecer by rememberSaveable { mutableStateOf(false) }
 
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
@@ -89,6 +103,33 @@ fun AtenderTicketScreen(
     }
 
     val cerrado = detalle?.ticket?.estadoEnum == EstadoTicket.CERRADO
+
+    if (confirmarRestablecer) {
+        AlertDialog(
+            onDismissRequest = { confirmarRestablecer = false },
+            icon = { Icon(Icons.Outlined.Key, contentDescription = null) },
+            title = { Text("¿Restablecer contraseña?") },
+            text = {
+                Text(
+                    "Se reemplazará la contraseña de ${detalle?.cliente?.nombre.orEmpty()} por una temporal " +
+                        "y el ticket pasará a Resuelto. Verifica antes su identidad."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmarRestablecer = false
+                    vm.restablecerClave()
+                }) { Text("Restablecer") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarRestablecer = false }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    claveTemporal?.let { clave ->
+        DialogoClaveTemporal(clave = clave, onCerrar = vm::ocultarClaveTemporal)
+    }
 
     Scaffold(
         topBar = { AppTopBar(titulo = "Atender ticket ${Formatos.numero(ticketId)}", onAtras = onAtras) },
@@ -157,6 +198,15 @@ fun AtenderTicketScreen(
                         enabled = hayCambios,
                         cargando = procesando && hayCambios,
                         modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+
+            if (esSolicitudDeCuenta && !cerrado) {
+                item {
+                    TarjetaRestablecerClave(
+                        enabled = !procesando,
+                        onRestablecer = { confirmarRestablecer = true }
                     )
                 }
             }
@@ -353,4 +403,82 @@ private fun AvisoCerrado(calificacion: Int) {
             Estrellas(calificacion = calificacion, tamano = 28.dp)
         }
     }
+}
+
+@Composable
+private fun TarjetaRestablecerClave(enabled: Boolean, onRestablecer: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Key, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(10.dp))
+                Text("Cuenta del estudiante", style = MaterialTheme.typography.titleSmall)
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Si el estudiante no puede ingresar, genera una contraseña temporal. " +
+                    "Al usarla, la app le pedirá crear una nueva.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(12.dp))
+            AyudaButton(
+                texto = "Generar contraseña temporal",
+                onClick = onRestablecer,
+                variante = VarianteBoton.CONTORNO,
+                enabled = enabled,
+                icono = Icons.Outlined.Key
+            )
+        }
+    }
+}
+
+@Composable
+private fun DialogoClaveTemporal(clave: String, onCerrar: () -> Unit) {
+    val portapapeles = LocalClipboardManager.current
+    AlertDialog(
+        onDismissRequest = {},
+        icon = { Icon(Icons.Outlined.Key, contentDescription = null) },
+        title = { Text("Contraseña temporal") },
+        text = {
+            Column {
+                Text(
+                    "Entrégala al estudiante por un canal seguro (correo institucional o en persona). " +
+                        "No se volverá a mostrar."
+                )
+                Spacer(Modifier.height(14.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        clave,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(vertical = 14.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                portapapeles.setText(AnnotatedString(clave))
+                onCerrar()
+            }) { Text("Copiar y cerrar") }
+        },
+        dismissButton = {
+            TextButton(onClick = onCerrar) { Text("Cerrar") }
+        }
+    )
 }

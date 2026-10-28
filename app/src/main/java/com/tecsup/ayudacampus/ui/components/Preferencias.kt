@@ -2,6 +2,7 @@ package com.tecsup.ayudacampus.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.unit.dp
@@ -141,6 +143,46 @@ fun FilaPreferencia(
             )
         }
         Switch(checked = activo, onCheckedChange = null)
+    }
+    if (mostrarSeparador) {
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
+}
+
+/** Fila de un grupo que abre otra pantalla (ej. "Cambiar contraseña"). */
+@Composable
+fun FilaAccion(
+    titulo: String,
+    detalle: String,
+    icono: ImageVector,
+    onClick: () -> Unit,
+    mostrarSeparador: Boolean = false
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icono, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(titulo, style = MaterialTheme.typography.titleSmall)
+            Text(
+                detalle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
     if (mostrarSeparador) {
         HorizontalDivider(

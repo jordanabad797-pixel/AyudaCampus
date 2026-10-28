@@ -70,6 +70,10 @@ interface TicketDao {
 
     // ---------------------------------------------------------------- Panel
 
+    /** Tickets de un estudiante con ese título que aún no se resuelven (evita solicitudes repetidas). */
+    @Query("SELECT COUNT(*) FROM tickets WHERE clienteId = :clienteId AND titulo = :titulo AND estado IN ('ABIERTO', 'EN_PROCESO')")
+    suspend fun contarPendientesConTitulo(clienteId: Int, titulo: String): Int
+
     @Query("SELECT COUNT(*) FROM tickets WHERE estado = :estado")
     fun contarPorEstado(estado: String): Flow<Int>
 

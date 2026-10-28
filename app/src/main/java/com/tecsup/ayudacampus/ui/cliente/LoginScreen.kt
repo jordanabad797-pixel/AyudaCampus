@@ -25,23 +25,21 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MailOutline
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,7 +58,6 @@ import com.tecsup.ayudacampus.model.Rol
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.AyudaTextField
 import com.tecsup.ayudacampus.viewmodel.SesionViewModel
-import kotlinx.coroutines.launch
 
 /**
  * [TÚ LO HACES · Paso 6] Inicio de sesión: UN solo Composable para ambos roles.
@@ -68,29 +65,48 @@ import kotlinx.coroutines.launch
  * La pantalla solo guarda lo que el usuario escribe y avisa al ViewModel.
  * Las validaciones y el login viven en [SesionViewModel].
  * Al elegir la pestaña, todo el tema cambia de color (cian ↔ violeta).
+ * "¿Olvidaste tu contraseña?": el estudiante abre la recuperación; Soporte ve a quién acudir.
  */
 @Composable
-fun LoginScreen(vm: SesionViewModel, onRegistrarse: () -> Unit = {}) {
+fun LoginScreen(
+    vm: SesionViewModel,
+    onRegistrarse: () -> Unit = {},
+    onOlvideClave: () -> Unit = {}
+) {
     val rol by vm.rolSeleccionado.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
 
     var correo by rememberSaveable { mutableStateOf("") }
     var clave by rememberSaveable { mutableStateOf("") }
+    var avisoSoporte by rememberSaveable { mutableStateOf(false) }
 
     val foco = LocalFocusManager.current
-    val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     val ingresar: () -> Unit = {
         foco.clearFocus()
         vm.login(correo, clave, rol)
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbar) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
+    if (avisoSoporte) {
+        AlertDialog(
+            onDismissRequest = { avisoSoporte = false },
+            icon = { Icon(Icons.Outlined.AdminPanelSettings, contentDescription = null) },
+            title = { Text("Cuenta de Soporte TI") },
+            text = {
+                Text(
+                    "Por seguridad, las cuentas de Soporte TI no se restablecen desde la app. " +
+                        "Comunícate con el administrador del sistema para que verifique tu identidad " +
+                        "y te asigne una nueva contraseña."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { avisoSoporte = false }) { Text("Entendido") }
+            }
+        )
+    }
+
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -135,9 +151,8 @@ fun LoginScreen(vm: SesionViewModel, onRegistrarse: () -> Unit = {}) {
             )
 
             TextButton(
-                onClick = {
-                    scope.launch { snackbar.showSnackbar("Pide a Soporte TI que restablezca tu contraseña.") }
-                },
+                onClick = { if (rol == Rol.CLIENTE) onOlvideClave() else avisoSoporte = true },
+                enabled = !cargando,
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("¿Olvidaste tu contraseña?", style = MaterialTheme.typography.labelMedium)

@@ -69,6 +69,10 @@ class SesionViewModel(
     private val _aviso = Channel<String>(Channel.BUFFERED)
     val aviso: Flow<String> = _aviso.receiveAsFlow()
 
+    /** Evento: la cuenta tiene una contraseña temporal; se envía su id para crear una nueva antes de entrar. */
+    private val _cambiarClaveObligatorio = Channel<Int>(Channel.BUFFERED)
+    val cambiarClaveObligatorio: Flow<Int> = _cambiarClaveObligatorio.receiveAsFlow()
+
     fun seleccionarRol(rol: Rol) {
         _rolSeleccionado.value = rol
         _error.value = null
@@ -107,6 +111,9 @@ class SesionViewModel(
                         _error.value = "Esta cuenta es de ${usuario.rolEnum.etiqueta}. " +
                             "Elige la pestaña «${usuario.rolEnum.etiqueta}»."
 
+                    usuario.debeCambiarClave ->
+                        _cambiarClaveObligatorio.send(usuario.id)
+
                     else -> {
                         prefs.guardarSesion(usuario.rolEnum, usuario.id)
                         _irAInicio.send(usuario.rolEnum)
@@ -134,6 +141,10 @@ class SesionViewModel(
             _rolSeleccionado.value = destino
             _irAInicio.send(destino)
         }
+    }
+
+    fun avisar(texto: String) {
+        viewModelScope.launch { _aviso.send(texto) }
     }
 
     fun cambiarModoOscuro(activo: Boolean) {

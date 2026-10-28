@@ -3,6 +3,8 @@ package com.tecsup.ayudacampus
 import com.tecsup.ayudacampus.model.Validaciones
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -28,5 +30,11 @@ class ValidacionesTest {
     @Test
     fun normalizarCorreoQuitaEspaciosYMayusculas() {
         assertEquals("juan@campus.test", Validaciones.normalizarCorreo("  Juan@Campus.TEST "))
+    }
+
+    @Test
+    fun nuevaClaveRespetaElMinimo() {
+        assertNotNull(Validaciones.errorNuevaClave("abc"))
+        assertNull(Validaciones.errorNuevaClave("abcd"))
     }
 }

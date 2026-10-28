@@ -19,6 +19,7 @@ object Rutas {
     const val SPLASH = "splash"
     const val LOGIN = "login"
     const val REGISTRO = "registro"
+    const val RECUPERAR_CLAVE = "recuperar-clave"
 
     // Grafos (uno por perfil)
     const val GRAFO_CLIENTE = "grafo_cliente"
@@ -27,6 +28,11 @@ object Rutas {
     // Argumentos
     const val ARG_TICKET_ID = "ticketId"
     const val ARG_CATEGORIA_ID = "categoriaId"
+    const val ARG_USUARIO_ID = "usuarioId"
+    const val ARG_OBLIGATORIO = "obligatorio"
+
+    // Cuenta (ambos perfiles)
+    const val CAMBIAR_CLAVE = "cuenta/clave/{$ARG_USUARIO_ID}?$ARG_OBLIGATORIO={$ARG_OBLIGATORIO}"
 
     // Estudiante
     const val MIS_TICKETS = "cliente/tickets"
@@ -41,6 +47,9 @@ object Rutas {
     const val CATEGORIAS = "soporte/categorias"
     const val FORM_CATEGORIA = "soporte/categoria?$ARG_CATEGORIA_ID={$ARG_CATEGORIA_ID}"
     const val AJUSTES = "soporte/ajustes"
+
+    fun cambiarClave(usuarioId: Int, obligatorio: Boolean = false) =
+        "cuenta/clave/$usuarioId?$ARG_OBLIGATORIO=$obligatorio"
 
     fun detalleTicket(id: Int) = "cliente/ticket/$id"
     fun atender(id: Int) = "soporte/atender/$id"

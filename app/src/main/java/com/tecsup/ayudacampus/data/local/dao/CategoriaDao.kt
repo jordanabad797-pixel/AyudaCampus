@@ -26,6 +26,9 @@ interface CategoriaDao {
     @Query("SELECT * FROM categorias WHERE id = :id")
     suspend fun obtener(id: Int): Categoria?
 
+    @Query("SELECT * FROM categorias WHERE nombre = :nombre COLLATE NOCASE LIMIT 1")
+    suspend fun obtenerPorNombre(nombre: String): Categoria?
+
     @Query("SELECT COUNT(*) FROM categorias")
     suspend fun contar(): Int
 
