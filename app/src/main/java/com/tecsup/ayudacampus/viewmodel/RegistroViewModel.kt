@@ -30,7 +30,8 @@ data class RegistroUiState(
 )
 
 /**
- * Reglas del registro: nombre ≥ 3, correo válido y único, contraseña ≥ 4 y confirmación igual.
+ * Reglas del registro: nombre y apellido solo con letras, correo institucional y único,
+ * contraseña segura (ver Validaciones.errorNuevaClave) y confirmación igual.
  * Si todo está bien crea la cuenta (rol CLIENTE) y deja la sesión iniciada en DataStore.
  */
 class RegistroViewModel(
@@ -60,18 +61,10 @@ class RegistroViewModel(
         val estado = _ui.value
         if (estado.enviando) return
 
-        val nombre = estado.nombre.trim()
-        val errorNombre = when {
-            nombre.length < Validaciones.MIN_NOMBRE -> "El nombre debe tener al menos ${Validaciones.MIN_NOMBRE} caracteres"
-            nombre.length > Validaciones.MAX_NOMBRE -> "El nombre no puede pasar de ${Validaciones.MAX_NOMBRE} caracteres"
-            else -> null
-        }
-        val errorCorreo = when {
-            estado.correo.isBlank() -> "Ingresa tu correo"
-            !Validaciones.esCorreoValido(estado.correo) -> "El correo no tiene un formato válido"
-            else -> null
-        }
-        val errorClave = Validaciones.errorNuevaClave(estado.clave)
+        val nombre = Validaciones.normalizarNombre(estado.nombre)
+        val errorNombre = Validaciones.errorNombre(nombre)
+        val errorCorreo = Validaciones.errorCorreoRegistro(estado.correo)
+        val errorClave = Validaciones.errorNuevaClave(estado.clave, datosPersonales = listOf(nombre, estado.correo))
         val errorConfirmacion = when {
             estado.confirmacion.isEmpty() -> "Repite tu contraseña"
             estado.confirmacion != estado.clave -> "Las contraseñas no coinciden"

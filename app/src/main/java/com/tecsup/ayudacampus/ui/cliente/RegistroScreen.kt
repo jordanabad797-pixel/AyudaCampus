@@ -33,6 +33,7 @@ import com.tecsup.ayudacampus.model.Validaciones
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.AyudaTextField
+import com.tecsup.ayudacampus.ui.components.IndicadorFuerzaClave
 import com.tecsup.ayudacampus.viewmodel.RegistroViewModel
 
 @Composable
@@ -79,9 +80,9 @@ fun RegistroScreen(vm: RegistroViewModel, onAtras: () -> Unit) {
             AyudaTextField(
                 valor = ui.correo,
                 onValorChange = vm::cambiarCorreo,
-                etiqueta = "Correo",
+                etiqueta = "Correo institucional",
                 icono = Icons.Outlined.MailOutline,
-                placeholder = "nombre@campus.test",
+                placeholder = "nombre@${Validaciones.DOMINIO_INSTITUCIONAL}",
                 error = ui.errorCorreo,
                 keyboardType = KeyboardType.Email,
                 keyboardActions = siguiente,
@@ -90,13 +91,14 @@ fun RegistroScreen(vm: RegistroViewModel, onAtras: () -> Unit) {
             AyudaTextField(
                 valor = ui.clave,
                 onValorChange = vm::cambiarClave,
-                etiqueta = "Contraseña (mínimo ${Validaciones.MIN_CLAVE} caracteres)",
+                etiqueta = "Contraseña (mín. ${Validaciones.MIN_CLAVE}, letras y números)",
                 icono = Icons.Outlined.Lock,
                 error = ui.errorClave,
                 esClave = true,
                 keyboardActions = siguiente,
                 enabled = !ui.enviando
             )
+            IndicadorFuerzaClave(clave = ui.clave)
             AyudaTextField(
                 valor = ui.confirmacion,
                 onValorChange = vm::cambiarConfirmacion,

@@ -35,6 +35,7 @@ import com.tecsup.ayudacampus.model.Validaciones
 import com.tecsup.ayudacampus.ui.components.AppTopBar
 import com.tecsup.ayudacampus.ui.components.AyudaButton
 import com.tecsup.ayudacampus.ui.components.AyudaTextField
+import com.tecsup.ayudacampus.ui.components.IndicadorFuerzaClave
 import com.tecsup.ayudacampus.viewmodel.CambiarClaveViewModel
 
 /** Sirve para el cambio voluntario (Perfil / Ajustes) y para el obligatorio tras una contraseña temporal. */
@@ -83,13 +84,14 @@ fun CambiarClaveScreen(vm: CambiarClaveViewModel, onAtras: () -> Unit) {
             AyudaTextField(
                 valor = ui.nueva,
                 onValorChange = vm::cambiarNueva,
-                etiqueta = "Nueva contraseña (mínimo ${Validaciones.MIN_CLAVE} caracteres)",
+                etiqueta = "Nueva contraseña (mín. ${Validaciones.MIN_CLAVE}, letras y números)",
                 icono = Icons.Outlined.Lock,
                 error = ui.errorNueva,
                 esClave = true,
                 keyboardActions = siguiente,
                 enabled = !ui.guardando
             )
+            IndicadorFuerzaClave(clave = ui.nueva)
             AyudaTextField(
                 valor = ui.confirmacion,
                 onValorChange = vm::cambiarConfirmacion,

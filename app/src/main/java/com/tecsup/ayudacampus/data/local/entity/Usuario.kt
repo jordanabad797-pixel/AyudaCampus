@@ -23,7 +23,8 @@ data class Usuario(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
     val correo: String,
-    val clave: String, // Solo datos ficticios de práctica (Ley 29733). En producción se guardaría un hash.
+    /** Hash con sal ("sal:hash", ver HashClave): la contraseña nunca se guarda en texto. */
+    val clave: String,
     val rol: String = Rol.CLIENTE.name,
     /** true → tiene una contraseña temporal y debe cambiarla antes de entrar. */
     val debeCambiarClave: Boolean = false

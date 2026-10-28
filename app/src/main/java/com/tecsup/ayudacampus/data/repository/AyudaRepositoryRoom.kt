@@ -8,11 +8,14 @@ import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.data.local.relation.TicketConDetalle
 import com.tecsup.ayudacampus.model.ConteoCategoria
 import com.tecsup.ayudacampus.model.EstadoTicket
+import com.tecsup.ayudacampus.model.HashClave
 import com.tecsup.ayudacampus.model.Prioridad
 import com.tecsup.ayudacampus.model.Rol
 import com.tecsup.ayudacampus.model.Validaciones
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 /**
  * [GUIADO · Paso 4] Implementación del contrato usando Room.
@@ -28,8 +31,10 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
 
     // ---------- Usuarios ----------
 
-    override suspend fun login(correo: String, clave: String): Usuario? =
-        usuarioDao.login(correo.trim(), clave)
+    override suspend fun login(correo: String, clave: String): Usuario? {
+        val usuario = usuarioDao.obtenerPorCorreo(Validaciones.normalizarCorreo(correo)) ?: return null
+        return usuario.takeIf { coincide(clave, it.clave) }
+    }
 
     override suspend fun obtenerUsuario(id: Int): Usuario? = usuarioDao.obtener(id)
 
@@ -40,9 +45,9 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
 
     override suspend fun registrarEstudiante(nombre: String, correo: String, clave: String): Usuario {
         val nuevo = Usuario(
-            nombre = nombre.trim(),
+            nombre = Validaciones.normalizarNombre(nombre),
             correo = Validaciones.normalizarCorreo(correo),
-            clave = clave,
+            clave = hash(clave),
             rol = Rol.CLIENTE.name
         )
         val id = usuarioDao.insertar(nuevo)
@@ -52,11 +57,19 @@ class AyudaRepositoryRoom(db: AyudaDatabase) : AyudaRepository {
     override suspend fun obtenerUsuarioPorCorreo(correo: String): Usuario? =
         usuarioDao.obtenerPorCorreo(Validaciones.normalizarCorreo(correo))
 
-    override suspend fun verificarClave(usuarioId: Int, clave: String): Boolean =
-        usuarioDao.obtener(usuarioId)?.clave == clave
+    override suspend fun verificarClave(usuarioId: Int, clave: String): Boolean {
+        val usuario = usuarioDao.obtener(usuarioId) ?: return false
+        return coincide(clave, usuario.clave)
+    }
 
     override suspend fun actualizarClave(usuarioId: Int, nueva: String, debeCambiar: Boolean) =
-        usuarioDao.actualizarClave(usuarioId, nueva, debeCambiar)
+        usuarioDao.actualizarClave(usuarioId, hash(nueva), debeCambiar)
+
+    /** El hash es cálculo intensivo: se hace fuera del hilo principal. */
+    private suspend fun hash(clave: String): String = withContext(Dispatchers.Default) { HashClave.generar(clave) }
+
+    private suspend fun coincide(clave: String, guardado: String): Boolean =
+        withContext(Dispatchers.Default) { HashClave.verificar(clave, guardado) }
 
     // ---------- Categorías (ejemplo resuelto) ----------
 

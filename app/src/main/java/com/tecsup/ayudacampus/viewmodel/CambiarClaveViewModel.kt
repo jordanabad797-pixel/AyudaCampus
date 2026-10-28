@@ -30,7 +30,8 @@ data class CambiarClaveUiState(
 /**
  * Cambio de contraseña.
  * obligatorio = true → viene del login con una contraseña temporal: al terminar se inicia la sesión.
- * Reglas: la actual debe ser correcta, la nueva cumple el mínimo, es distinta de la actual y se confirma.
+ * Reglas: la actual debe ser correcta; la nueva es segura, distinta de la actual,
+ * no contiene el nombre ni el correo y se confirma.
  */
 class CambiarClaveViewModel(
     private val repo: AyudaRepository,
@@ -83,9 +84,13 @@ class CambiarClaveViewModel(
             _ui.update { it.copy(guardando = true, errorGeneral = null) }
             try {
                 val usuario = repo.obtenerUsuario(usuarioId)
+                val errorPersonal = usuario?.let { Validaciones.errorNuevaClave(estado.nueva, listOf(it.nombre, it.correo)) }
                 when {
                     usuario == null ->
                         _ui.update { it.copy(errorGeneral = "No se encontró la cuenta") }
+
+                    errorPersonal != null ->
+                        _ui.update { it.copy(errorNueva = errorPersonal) }
 
                     !repo.verificarClave(usuarioId, estado.actual) ->
                         _ui.update {

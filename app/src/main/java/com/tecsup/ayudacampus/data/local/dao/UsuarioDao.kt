@@ -13,13 +13,6 @@ import com.tecsup.ayudacampus.data.local.entity.Usuario
 @Dao
 interface UsuarioDao {
 
-    /**
-     * Devuelve el usuario si correo y clave coinciden; null si no.
-     * COLLATE NOCASE: "Juan@Campus.test" y "juan@campus.test" son el mismo correo.
-     */
-    @Query("SELECT * FROM usuarios WHERE correo = :correo COLLATE NOCASE AND clave = :clave LIMIT 1")
-    suspend fun login(correo: String, clave: String): Usuario?
-
     /** Para recuperar la sesión guardada en DataStore (usuarioId). */
     @Query("SELECT * FROM usuarios WHERE id = :id")
     suspend fun obtener(id: Int): Usuario?
@@ -31,6 +24,10 @@ interface UsuarioDao {
     @Query("SELECT COUNT(*) FROM usuarios WHERE correo = :correo COLLATE NOCASE")
     suspend fun contarPorCorreo(correo: String): Int
 
+    /**
+     * Para el login: la contraseña se compara después contra su hash (no en SQL).
+     * COLLATE NOCASE: "Juan@Campus.test" y "juan@campus.test" son el mismo correo.
+     */
     @Query("SELECT * FROM usuarios WHERE correo = :correo COLLATE NOCASE LIMIT 1")
     suspend fun obtenerPorCorreo(correo: String): Usuario?
 

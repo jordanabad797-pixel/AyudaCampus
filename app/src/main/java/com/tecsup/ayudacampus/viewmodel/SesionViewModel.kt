@@ -6,9 +6,12 @@ import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.data.local.entity.rolEnum
 import com.tecsup.ayudacampus.data.prefs.PreferenciasStore
 import com.tecsup.ayudacampus.data.repository.AyudaRepository
+import com.tecsup.ayudacampus.model.ControlIntentos
 import com.tecsup.ayudacampus.model.Rol
 import com.tecsup.ayudacampus.model.Validaciones
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -56,11 +59,25 @@ class SesionViewModel(
     private val _rolSeleccionado = MutableStateFlow(Rol.CLIENTE)
     val rolSeleccionado: StateFlow<Rol> = _rolSeleccionado.asStateFlow()
 
+    /** Error general (credenciales, bloqueo). Los de formato van junto a cada campo. */
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _errorCorreo = MutableStateFlow<String?>(null)
+    val errorCorreo: StateFlow<String?> = _errorCorreo.asStateFlow()
+
+    private val _errorClave = MutableStateFlow<String?>(null)
+    val errorClave: StateFlow<String?> = _errorClave.asStateFlow()
+
     private val _cargando = MutableStateFlow(false)
     val cargando: StateFlow<Boolean> = _cargando.asStateFlow()
+
+    /** Segundos que faltan para poder volver a intentar (0 = sin bloqueo). */
+    private val _segundosBloqueo = MutableStateFlow(0)
+    val segundosBloqueo: StateFlow<Int> = _segundosBloqueo.asStateFlow()
+
+    private val intentos = ControlIntentos()
+    private var cuentaRegresiva: Job? = null
 
     /** Evento de una sola vez: navegar a la pantalla principal de este rol (login o cambio de perfil). */
     private val _irAInicio = Channel<Rol>(Channel.BUFFERED)
@@ -75,26 +92,31 @@ class SesionViewModel(
 
     fun seleccionarRol(rol: Rol) {
         _rolSeleccionado.value = rol
-        _error.value = null
+        limpiarError()
     }
 
+    /** Al escribir se borran los errores; el aviso de bloqueo se mantiene mientras dure. */
     fun limpiarError() {
-        _error.value = null
+        _errorCorreo.value = null
+        _errorClave.value = null
+        if (_segundosBloqueo.value == 0) _error.value = null
     }
 
     fun login(correo: String, clave: String, rolSeleccionado: Rol = _rolSeleccionado.value) {
-        if (_cargando.value) return
-        val correoLimpio = correo.trim()
+        if (_cargando.value || _segundosBloqueo.value > 0) return
+        val correoLimpio = Validaciones.normalizarCorreo(correo)
 
-        val errorValidacion = when {
-            correoLimpio.isEmpty() && clave.isEmpty() -> "Ingresa tu correo y tu contraseña"
+        _errorCorreo.value = when {
             correoLimpio.isEmpty() -> "Ingresa tu correo"
-            clave.isEmpty() -> "Ingresa tu contraseña"
             !Validaciones.esCorreoValido(correoLimpio) -> "El correo no tiene un formato válido"
             else -> null
         }
-        if (errorValidacion != null) {
-            _error.value = errorValidacion
+        _errorClave.value = if (clave.isEmpty()) "Ingresa tu contraseña" else null
+        if (_errorCorreo.value != null || _errorClave.value != null) return
+
+        val restante = intentos.restanteMs(correoLimpio, System.currentTimeMillis())
+        if (restante > 0) {
+            iniciarBloqueo(restante)
             return
         }
 
@@ -103,10 +125,12 @@ class SesionViewModel(
             _error.value = null
             try {
                 val usuario = repo.login(correoLimpio, clave)
+                if (usuario == null) {
+                    registrarFallo(correoLimpio)
+                    return@launch
+                }
+                intentos.reiniciar(correoLimpio)
                 when {
-                    usuario == null ->
-                        _error.value = "Correo o contraseña incorrectos"
-
                     usuario.rolEnum != rolSeleccionado ->
                         _error.value = "Esta cuenta es de ${usuario.rolEnum.etiqueta}. " +
                             "Elige la pestaña «${usuario.rolEnum.etiqueta}»."
@@ -124,6 +148,32 @@ class SesionViewModel(
             } finally {
                 _cargando.value = false
             }
+        }
+    }
+
+    private fun registrarFallo(correo: String) {
+        val ahora = System.currentTimeMillis()
+        val quedan = intentos.registrarFallo(correo, ahora)
+        when {
+            quedan == 0 -> iniciarBloqueo(intentos.restanteMs(correo, ahora))
+            quedan <= 2 -> _error.value = "Correo o contraseña incorrectos. " +
+                if (quedan == 1) "Te queda 1 intento." else "Te quedan $quedan intentos."
+            else -> _error.value = "Correo o contraseña incorrectos"
+        }
+    }
+
+    private fun iniciarBloqueo(restanteMs: Long) {
+        cuentaRegresiva?.cancel()
+        cuentaRegresiva = viewModelScope.launch {
+            var segundos = ((restanteMs + 999) / 1000).toInt()
+            while (segundos > 0) {
+                _segundosBloqueo.value = segundos
+                _error.value = "Demasiados intentos fallidos. Intenta de nuevo en $segundos s."
+                delay(1_000)
+                segundos--
+            }
+            _segundosBloqueo.value = 0
+            _error.value = null
         }
     }
 

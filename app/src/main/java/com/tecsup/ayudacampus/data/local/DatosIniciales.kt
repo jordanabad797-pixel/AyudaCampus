@@ -6,6 +6,7 @@ import com.tecsup.ayudacampus.data.local.entity.Comentario
 import com.tecsup.ayudacampus.data.local.entity.Ticket
 import com.tecsup.ayudacampus.data.local.entity.Usuario
 import com.tecsup.ayudacampus.model.EstadoTicket
+import com.tecsup.ayudacampus.model.HashClave
 import com.tecsup.ayudacampus.model.Prioridad
 import com.tecsup.ayudacampus.model.Rol
 
@@ -40,12 +41,18 @@ object DatosIniciales {
             // ---------- 2. Usuarios ----------
             usuarioDao.insertarTodos(
                 listOf(
-                    Usuario(nombre = "Juan Pérez", correo = "juan@campus.test", clave = "1234", rol = Rol.CLIENTE.name),
-                    Usuario(nombre = "Soporte TI", correo = "soporte@campus.test", clave = "admin", rol = Rol.ADMIN.name)
+                    Usuario(
+                        nombre = "Juan Pérez", correo = "juan@campus.test",
+                        clave = HashClave.generar("1234"), rol = Rol.CLIENTE.name
+                    ),
+                    Usuario(
+                        nombre = "Soporte TI", correo = "soporte@campus.test",
+                        clave = HashClave.generar("admin"), rol = Rol.ADMIN.name
+                    )
                 )
             )
-            val juan = requireNotNull(usuarioDao.login("juan@campus.test", "1234"))
-            val soporte = requireNotNull(usuarioDao.login("soporte@campus.test", "admin"))
+            val juan = requireNotNull(usuarioDao.obtenerPorCorreo("juan@campus.test"))
+            val soporte = requireNotNull(usuarioDao.obtenerPorCorreo("soporte@campus.test"))
 
             // ---------- 3. Tickets (del más antiguo al más reciente) ----------
             ticketDao.insertarTicket(

@@ -75,7 +75,11 @@ fun LoginScreen(
 ) {
     val rol by vm.rolSeleccionado.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
+    val errorCorreo by vm.errorCorreo.collectAsStateWithLifecycle()
+    val errorClave by vm.errorClave.collectAsStateWithLifecycle()
     val cargando by vm.cargando.collectAsStateWithLifecycle()
+    val segundosBloqueo by vm.segundosBloqueo.collectAsStateWithLifecycle()
+    val bloqueado = segundosBloqueo > 0
 
     var correo by rememberSaveable { mutableStateOf("") }
     var clave by rememberSaveable { mutableStateOf("") }
@@ -133,6 +137,7 @@ fun LoginScreen(
                 etiqueta = "Correo",
                 icono = Icons.Outlined.MailOutline,
                 placeholder = "nombre@campus.test",
+                error = errorCorreo,
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next,
                 keyboardActions = KeyboardActions(onNext = { foco.moveFocus(FocusDirection.Down) }),
@@ -144,6 +149,7 @@ fun LoginScreen(
                 onValorChange = { clave = it; vm.limpiarError() },
                 etiqueta = "Contraseña",
                 icono = Icons.Outlined.Lock,
+                error = errorClave,
                 esClave = true,
                 imeAction = ImeAction.Done,
                 keyboardActions = KeyboardActions(onDone = { ingresar() }),
@@ -166,7 +172,12 @@ fun LoginScreen(
                 MensajeError(texto = error.orEmpty(), modifier = Modifier.padding(bottom = 12.dp))
             }
 
-            AyudaButton(texto = "Ingresar", onClick = ingresar, cargando = cargando)
+            AyudaButton(
+                texto = if (bloqueado) "Intenta de nuevo en $segundosBloqueo s" else "Ingresar",
+                onClick = ingresar,
+                enabled = !bloqueado,
+                cargando = cargando
+            )
 
             AnimatedVisibility(visible = rol == Rol.CLIENTE) {
                 TextButton(
